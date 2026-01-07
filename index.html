@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: linear-gradient(120deg, #f0f4f8, #d9e2ec);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            gap: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .title {
+            text-align: center;
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        /* 核心输入区样式 - 适配多行textarea */
+        .input-box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        #input1 {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 18px;
+            color: #2d3748;
+            outline: none;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        #input1:focus {
+            border-color: #4299e1;
+            box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.1);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 120px;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #runBtn {
+            background: #48bb78;
+            color: #fff;
+        }
+
+        #runBtn:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        #detailBtn {
+            background: #4299e1;
+            color: #fff;
+        }
+
+        #detailBtn:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        /* 结果展示区 */
+        .result-box,
+        .detail-box,
+        .history-box,
+        .table-box {
+            background: #fff;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .box-title {
+            font-size: 20px;
+            color: #2d3748;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f0f4f8;
+        }
+
+        #Calculatordata,
+        #CalculatorVlue {
+            font-size: 18px;
+            color: #2d3748;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .empty-tip {
+            color: #718096;
+            font-size: 16px;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        /* 历史记录表格 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #f0f4f8;
+        }
+
+        th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .history-detail-btn {
+            padding: 6px 12px;
+            background: #9f7aea;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* 数字颜色单元格样式（核心） */
+        .num-cell {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            line-height: 36px;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #fff;
+            margin: 4px;
+        }
+
+        /* 数字容器：自适应排版，宽屏时可自动换列 */
+        .num-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        /* 隐藏表格的“对应数字”第二列（只在本表格内生效） */
+        .table-box table th:nth-child(2),
+        .table-box table td:nth-child(2) {
+            display: none;
+        }
+
+        /* 宽屏时使用网格自动适配列数 */
+        @media (min-width: 900px) {
+            .num-list {
+                /* display: grid; */
+                grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+                gap: 8px;
+            }
+            .num-cell {
+                width: 48px;
+                height: 48px;
+                line-height: 48px;
+                font-size: 16px;
+            }
+        }
+
+        /* 响应式适配 - 兼容移动端textarea */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .input-box {
+                padding: 20px;
+            }
+
+            .box-title {
+                font-size: 18px;
+            }
+
+            #input1 {
+                min-height: 100px;
+                font-size: 16px;
+            }
+
+            .btn {
+                height: 45px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">计算工具</h1>
+
+        <!-- 1. 核心多行输入+按钮区 -->
+        <div class="input-box">
+            <textarea id="input1" placeholder="请输入计算所需数字/内容，多个内容 换行分隔"></textarea>
+            <div class="btn-group">
+                <button class="btn" id="runBtn">运行</button>
+                <button class="btn" id="detailBtn">明细</button>
+            </div>
+        </div>
+
+        <!-- 2. 计算结果展示区 -->
+        <div class="result-box">
+            <h3 class="box-title">计算结果</h3>
+            <div id="Calculatordata" class="empty-tip">点击「运行」按钮查看计算结果</div>
+        </div>
+
+        <!-- 4. 历史记录板块 -->
+        <div class="history-box">
+            <h3 class="box-title">历史计算记录</h3>
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>输入内容</th>
+                        <th>计算结果</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr>
+                        <td colspan="4" class="empty-tip">暂无历史记录</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 3. 计算明细展示区 -->
+        <div class="detail-box">
+            <h3 class="box-title">计算明细</h3>
+            <div id="CalculatorVlue" class="empty-tip">点击「明细」按钮查看计算详情</div>
+        </div>
+
+        <!-- 5. 生肖+数字颜色对照表 -->
+        <div class="table-box">
+            <h3 class="box-title">25版12生肖数字对照表</h3>
+            <table>
+                    <thead>
+                        <tr>
+                            <th>生肖</th>
+                            <th>对应数字</th>
+                            <th>数字颜色示例</th>
+                        </tr>
+                    </thead>
+                <tbody id="zodiacColorBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ========== 全局核心数据定义 ==========
+        const zodiacMap = {
+            "蛇": [1, 13, 25, 37, 49],
+            "龙": [2, 14, 26, 38],
+            "兔": [3, 15, 27, 39],
+            "虎": [4, 16, 28, 40],
+            "牛": [5, 17, 29, 41],
+            "鼠": [6, 18, 30, 42],
+            "猪": [7, 19, 31, 43],
+            "狗": [8, 20, 32, 44],
+            "鸡": [9, 21, 33, 45],
+            "猴": [10, 22, 34, 46],
+            "羊": [11, 23, 35, 47],
+            "马": [12, 24, 36, 48],
+        };
+
+        const colorMap = {
+            // #e53e3e
+            '红波': [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46],
+
+            // #3182ce
+            '蓝波': [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48],
+
+            // #38a169
+            '绿波': [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+        };
+
+        // 根据 colorMap 生成数字到颜色的映射，优先使用指定波色颜色
+        const numColorMap = {};
+        const waveColor = {
+            '红波': '#e53e3e',
+            '蓝波': '#3182ce',
+            '绿波': '#38a169'
+        };
+        for (const [wave, nums] of Object.entries(colorMap)) {
+            const color = waveColor[wave] || '#6b7280';
+            nums.forEach(n => { numColorMap[n] = color; });
+        }
+
+        let historyList = []; // 历史记录
+
+        class LotteryCalculator {
+            constructor() {
+                this.delimiters = /[\s,，、.．\-－~～一]+/;
+            }
+
+            calculate(input) {
+                const events = this._parseInput(String(input || ""));
+                const totalAmount = events.reduce((s, e) => s + (e.amount || 0), 0);
+                return { totalAmount, details: events, breakdown: events };
+            }
+
+            _parseInput(input) {
+                const events = [];
+                const lines = input.split('\n').map(l => l.trim()).filter(Boolean);
+
+                lines.forEach(line => {
+                    let match;
+                    // 数字各X、买X、一个买X
+                    match = line.match(/^([\d\s,，、.．\-－~～一]+)\s*(?:各|买|一个买)\s*(\d+)/);
+                    if (match) {
+                        const numbers = this._parseNumbers(match[1]);
+                        if (numbers.length) {
+                            events.push({ type: 'single', desc: `号码${numbers.join(',')} 各${match[2]}`, numbers, amount: numbers.length * parseInt(match[2]) });
+                        }
+                        return;
+                    }
+
+                    // 多生肖各号20
+                    match = line.match(/((?:鼠|牛|虎|兔|龙|蛇|马|羊|猴|鸡|狗|猪)(?:[鼠牛虎兔龙蛇马羊猴鸡狗猪])*)[号数]*各号?\s*(\d+)/);
+                    if (match) {
+                        const animals = match[1].match(/鼠|牛|虎|兔|龙|蛇|马|羊|猴|鸡|狗|猪/g) || [];
+                        let nums = [];
+                        animals.forEach(a => { nums = nums.concat(zodiacMap[a] || []); });
+                        nums = [...new Set(nums)];
+                        events.push({ type: 'zodiac', desc: `${animals.join('')} 各号${match[2]}`, numbers: nums, amount: nums.length * parseInt(match[2]) });
+                        return;
+                    }
+
+                    // 波色各号X
+                    match = line.match(/(红波|蓝波|绿波)[号数]*各号?\s*(\d+)/);
+                    if (match) {
+                        const nums = colorMap[match[1]] || [];
+                        events.push({ type: 'color', desc: `${match[1]} 各号${match[2]}`, numbers: nums, amount: nums.length * parseInt(match[2]) });
+                        return;
+                    }
+
+                    // 连肖（简单处理为记录描述）
+                    match = line.match(/(平特|二连肖|三连肖)\s*([\u4e00-\u9fa5,，]+)\s*(\d+)/);
+                    if (match) {
+                        events.push({ type: 'combo', desc: `${match[1]} ${match[2]} 各${match[3]}`, animals: match[2].split(/[,，]/), amount: parseInt(match[3]) });
+                        return;
+                    }
+                });
+
+                return events;
+            }
+
+            _parseNumbers(str) {
+                return String(str).split(this.delimiters).map(s => parseInt(s)).filter(n => !isNaN(n) && n >= 1 && n <= 49);
+            }
+        }
+
+        // DOM
+        const input1 = document.getElementById('input1');
+        const runBtn = document.getElementById('runBtn');
+        const detailBtn = document.getElementById('detailBtn');
+        const calcResultDom = document.getElementById('Calculatordata');
+        const calcDetailDom = document.getElementById('CalculatorVlue');
+        const historyBody = document.getElementById('historyBody');
+        const zodiacColorBody = document.getElementById('zodiacColorBody');
+
+        // 当前运行结果缓存
+        window.currentResult = null;
+        window.currentDetail = null;
+
+        runBtn.addEventListener('click', () => {
+            const inputVal = input1.value.trim();
+            const calculator = new LotteryCalculator();
+            const resultObj = calculator.calculate(inputVal);
+            window.currentResult = resultObj;
+            window.currentDetail = resultObj.details;
+            if (!resultObj.details || resultObj.details.length === 0) {
+                calcResultDom.innerHTML = '无可计算内容';
+                calcDetailDom.innerHTML = '暂无计算明细，请先输入有效内容并点击「运行」';
+                return; // 不加入历史记录
+            }
+            calcResultDom.innerHTML = `总金额: ${resultObj.totalAmount}`;
+            calcDetailDom.innerHTML = '点击「明细」按钮查看计算详情';
+            addToHistory(inputVal, resultObj.totalAmount, resultObj.details);
+        });
+
+        detailBtn.addEventListener('click', () => {
+            if (!window.currentDetail) {
+                calcDetailDom.innerHTML = '暂无计算明细，请先点击「运行」';
+                return;
+            }
+            const html = window.currentDetail.map(it => `<div>${formatDesc(it.desc||'')}: ${it.amount||0}</div>`).join('');
+            calcDetailDom.innerHTML = html || '暂无计算明细';
+        });
+
+        function addToHistory(inputVal, result, detail) {
+            const historyItem = { inputVal, result, detail, id: Date.now().toString() };
+            historyList.unshift(historyItem);
+            localStorage.setItem('lotteryHistory', JSON.stringify(historyList));
+            renderHistoryTable();
+        }
+
+        function renderHistoryTable() {
+            if (!historyList || historyList.length === 0) {
+                historyBody.innerHTML = `<tr><td colspan="4" class="empty-tip">暂无历史记录</td></tr>`;
+                return;
+            }
+            historyBody.innerHTML = historyList.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.inputVal}</td>
+                    <td>${item.result}</td>
+                    <td><button class="history-detail-btn" onclick="showHistoryDetail('${item.id}')">查看明细</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function showHistoryDetail(id) {
+            const item = historyList.find(it => it.id === id);
+            if (!item) return;
+            const detail = item.detail;
+            if (Array.isArray(detail)) {
+                calcDetailDom.innerHTML = detail.map(d => `<div>${formatDesc(d.desc||'')}: ${d.amount||0}</div>`).join('');
+            } else if (typeof detail === 'string') {
+                calcDetailDom.innerHTML = detail;
+            } else {
+                calcDetailDom.innerHTML = JSON.stringify(detail);
+            }
+        }
+
+        // 格式化描述：移除“号码”，并将 1-9 格式化为 01-09
+        function formatDesc(desc) {
+            return String(desc).replace(/号码/g, '').replace(/\b([1-9])\b/g, '0$1');
+        }
+
+        function renderZodiacColorTable() {
+            let html = '';
+            for (let zodiac in zodiacMap) {
+                const nums = zodiacMap[zodiac];
+                const numHtml = nums.map(num => {
+                    const disp = String(num).padStart(2, '0');
+                    const color = numColorMap[num] || '#6b7280';
+                    return `<span class="num-cell" style="background:${color}">${disp}</span>`;
+                }).join('');
+                html += `<tr><td>${zodiac}</td><td style="display:none">${nums.join(',')}</td><td><div class="num-list">${numHtml}</div></td></tr>`;
+            }
+            zodiacColorBody.innerHTML = html;
+        }
+
+        window.onload = () => {
+            const localHistory = localStorage.getItem('lotteryHistory');
+            if (localHistory) {
+                try { historyList = JSON.parse(localHistory) || []; } catch (e) { historyList = []; }
+            }
+            renderHistoryTable();
+            renderZodiacColorTable();
+        };
+    </script>
+</body>
+
+</html>
