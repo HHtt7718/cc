@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>范围排序</title>
+
+    <style>
+        body {
+            font-family: "微软雅黑", Arial, sans-serif;
+            background: #f5f6fa;
+        }
+
+        table {
+            border-collapse: collapse;
+            /* width: 100%; */
+            margin: auto;
+            background: #fff;
+            box-shadow: 0 2px 8px #ccc;
+        }
+
+        th,
+        td {
+            border: 1px solid #e1e1e1;
+            padding: 8px 12px;
+            text-align: center;
+        }
+
+        th {
+            background: linear-gradient(to right, #a8edea, #fed6e3);
+            position: sticky;
+            top: 0;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .highlight {
+            background: #ffe082;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+
+        .wrong {
+            color: red;
+            font-weight: bold;
+        }
+
+        #hitTable {
+            width: 100%;
+            border-collapse: collapse;
+            /* margin: 10px 0;
+            font-size: 14px; */
+        }
+
+        #hitTable th,
+        #hitTable td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        #hitTable th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        #hitTable .correct {
+            color: green;
+            font-weight: bold;
+        }
+
+        #hitTable .wrong {
+            color: red;
+            font-weight: bold;
+        }
+
+        #hitTable .separator {
+            background-color: #f9f9f9;
+            border-left: 2px solid #aaa;
+            border-right: 2px solid #aaa;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 style="text-align: center;"></h2>
+    <table id="zodiacCountTable"></table>
+
+    <script src="../predText/predHitDate.js"></script>
+    <script src="../td/js.js"></script>
+
+
+
+    <script>
+
+        const dataTable = processed;
+
+        const zodiacData = {
+            "鼠": "06,18,30,42",
+            "牛": "05,17,29,41",
+            "虎": "04,16,28,40",
+            "兔": "03,15,27,39",
+            "龙": "02,14,26,38",
+            "蛇": "01,13,25,37,49",
+            "马": "12,24,36,48",
+            "羊": "11,23,35,47",
+            "猴": "10,22,34,46",
+            "鸡": "09,21,33,45",
+            "狗": "08,20,32,44",
+            "猪": "07,19,31,43"
+        };
+
+        const zodiacSixData = {
+            "鼠": "07,19,31,43",
+            "牛": "06,18,30,42",
+            "虎": "05,17,29,41",
+            "兔": "04,16,28,40",
+            "龙": "03,15,27,39",
+            "蛇": "02,14,26,38",
+            "马": "01,13,25,37,49",
+            "羊": "12,24,36,48",
+            "猴": "11,23,35,47",
+            "鸡": "10,22,34,46",
+            "狗": "09,21,33,45",
+            "猪": "08,20,32,44"
+        };
+
+        // 根据日期选择使用的生肖映射：小于 20260217 使用 zodiacData，>= 20260217 使用 zodiacSixData
+        function getZodiacMapByDate(dateStr) {
+            if (!dateStr) return zodiacData;
+            const num = Number(dateStr);
+            return num >= 20260217 ? zodiacSixData : zodiacData;
+        }
+
+        const fieldFMap = {
+            "男": ["鼠", "虎", "龙", "马", "猴", "狗"],
+            "女": ["牛", "兔", "蛇", "羊", "鸡", "猪"],
+            "家": ["鼠", "牛", "兔", "龙", "蛇", "马"],
+            "野": ["虎", "猴", "羊", "鸡", "狗", "猪"],
+        };
+
+        const fieldThreeMap = {
+
+            "菜": ["鼠", "猴", "鸡", "猪"],
+            "草": ["牛", "兔", "马", "羊"],
+            "肉": ["虎", "龙", "蛇", "狗"],
+            "天": ["鼠", "兔", "马", "鸡"],
+            "地": ["牛", "龙", "羊", "狗"],
+            "人": ["虎", "蛇", "猴", "猪"],
+            "福": ["鼠", "虎", "龙", "马"],
+            "禄": ["牛", "兔", "猴", "猪"],
+            "寿": ["蛇", "羊", "鸡", "狗"],
+            "日": ["牛", "龙", "马", "猪"],
+            "月": ["鼠", "蛇", "羊", "狗"],
+            "星": ["虎", "兔", "猴", "鸡"],
+            "魏": ["鼠", "牛", "狗", "猪"],
+            "蜀": ["马", "羊", "猴", "鸡"],
+            "吴": ["虎", "兔", "龙", "蛇"],
+
+        }
+
+        const fieldFourMap = {
+            "琴": ["兔", "蛇", "鸡"],
+            "棋": ["鼠", "牛", "狗"],
+            "书": ["虎", "龙", "马"],
+            "画": ["猴", "羊", "猪"],
+            "春": ["虎", "兔", "龙"],
+            "夏": ["蛇", "马", "羊"],
+            "秋": ["猴", "鸡", "狗"],
+            "冬": ["猪", "牛", "鼠"],
+            "东": ["兔", "龙", "蛇"],
+            "西": ["马", "羊", "猴"],
+            "南": ["鸡", "狗", "猪"],
+            "北": ["鼠", "牛", "虎"],
+            "梅": ["鼠", "龙", "猴"],
+            "兰": ["兔", "羊", "猪"],
+            "菊": ["虎", "马", "狗"],
+            "竹": ["牛", "蛇", "鸡"]
+        };
+
+        // 统计生肖计数
+        function getZodiacCount(data, zodiacMap = zodiacData) {
+            const allZodiacs = Object.keys(zodiacMap);
+            const groups = {
+                group1: Object.fromEntries(allZodiacs.map(z => [z, 0])),
+                group2: Object.fromEntries(allZodiacs.map(z => [z, 0])),
+                group3: Object.fromEntries(allZodiacs.map(z => [z, 0]))
+            };
+
+            // 统计三组数据
+            const updateGroup = (group, key, fieldFMap) => {
+                const val = Number(data[key]);
+                if (!isNaN(val) && fieldFMap[key]) {
+                    fieldFMap[key].forEach(z => group[z] += val);
+                }
+            };
+
+            ["男", "女", "家", "野"].forEach(key => updateGroup(groups.group1, key, fieldFMap));
+            Object.keys(fieldThreeMap).forEach(key => updateGroup(groups.group2, key, fieldThreeMap));
+            Object.keys(fieldFourMap).forEach(key => updateGroup(groups.group3, key, fieldFourMap));
+
+            // 计算第四组
+            const group4 = Object.fromEntries(allZodiacs.map(z => [
+                z,
+                groups.group1[z] + groups.group2[z] + groups.group3[z]
+            ]));
+
+            // console.log(groups.group1)
+
+            return { ...groups, group4 };
+        }
+
+        // // 渲染数据命中表格
+        function renderHitTable() {
+            if (!dataTable || dataTable.length < 2) {
+                console.error("数据不足，至少需要两期数据");
+                return;
+            }
+
+            // 新增：计算百列、两百范围、五百范围
+            function getTopNumbers(arr, count = 28) {
+                const freq = {};
+                arr.forEach(num => {
+                    freq[num] = (freq[num] || 0) + 1;
+                });
+                return Object.entries(freq)
+                    .sort((a, b) => b[1] - a[1] || Number(a[0]) - Number(b[0]))
+                    .slice(0, count)
+                    .map(([num]) => num);
+            }
+
+            function getRangeNums(dataArr, endIdx, range) {
+                if (endIdx + 1 < range) return [];
+                const nums = [];
+                for (let i = Math.max(0, endIdx - range + 1); i <= endIdx; i++) {
+                    const n = dataArr[i]["特号"];
+                    if (n) nums.push(n.padStart(2, "0"));
+                }
+                return getTopNumbers(nums, 28);
+            }
+
+            // 五百范围
+            // 02,03,04,10,11,14,15,16,18,20,21,23,24,25,27,30,33,38,39,40,41,43,44,45,46,47,49
+            const fiveHundredRange = [
+                "02", "03", "04", "10", "11", "14", "15", "16", "18", "20", "21", "23", "24", "25", "27",
+                "30", "33", "38", "39", "40", "41", "43", "44", "45", "46", "47", "49"
+            ];
+
+            // 预计算所有期的百列、两百范围
+            const rangeData = dataTable.map((row, idx, arr) => {
+                const bai = getRangeNums(arr, idx, 101);
+                const liangbai = getRangeNums(arr, idx, 201);
+                return { bai, liangbai };
+            });
+
+            // 控制台打印最新一期 百列 /两百 范围
+            if (rangeData.length) {
+                const last = rangeData[rangeData.length - 1];
+                const baiSorted = last.bai.slice().sort((a, b) => Number(a) - Number(b));
+                const liangbaiSorted = last.liangbai.slice().sort((a, b) => Number(a) - Number(b));
+
+                const baiLData =  baiSorted.join(",");
+                const liangbaiData =  liangbaiSorted.join(",");
+
+
+                console.log("百列范围:", baiLData);
+                console.log("两百范围:", liangbaiData);
+            }
+
+            const tableContainer = document.getElementById('zodiacCountTable');
+            tableContainer.innerHTML = '';
+
+            // 创建表格结构
+            const table = document.createElement('table');
+            table.id = 'hitTable';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>期数</th>
+                        <th>特号</th>
+                        <th>生肖</th>
+                        <th>范围</th>
+                        <th class="separator">命中</th>
+                        <th>前三</th>
+                        <th>上三</th>
+                        <th>中三</th>
+                        <th>后三</th>
+                        <th>百列</th>
+                        <th>两百</th>
+                        <th>五百</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+
+            // 预计算所有期的第四组数据（排序后的生肖）
+            const group4Data = dataTable.map(data => {
+                const zodiacMap = getZodiacMapByDate(data["日期"]);
+                const { group4 } = getZodiacCount(data, zodiacMap);
+                const sortedZodiacs = Object.entries(group4)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([z]) => z);
+                return { data, sortedZodiacs };
+            });
+
+            // 打印最新一期使用的是哪个生肖映射（zodiacData 或 zodiacSixData）
+            // (function logLatestZodiacMap() {
+            //     const latestIdx = dataTable.length - 1;
+            //     if (latestIdx < 0) return;
+            //     const latestDate = dataTable[latestIdx]["日期"];
+            //     const latestMap = getZodiacMapByDate(latestDate);
+            //     const mapName = latestMap === zodiacSixData ? 'zodiacSixData' : 'zodiacData';
+            //     console.log('最新一期日期:', latestDate, '使用映射:', mapName);
+            // })();
+
+            // 命中计数器
+            let hitCount = 0, totalCount = 0;
+            let countTop3 = 0, countUpper3 = 0, countMiddle3 = 0, countLower3 = 0;
+
+            // 新增：百列、两百、五百计数器
+            let baiCount = 0, liangbaiCount = 0, wubaiCount = 0;
+
+            let tableRows = '';
+
+            //正序 for (let i = 0; i < group4Data.length; i++)
+            for (let i = group4Data.length - 1; i >= 0; i--) {
+                const { data, sortedZodiacs } = group4Data[i];
+                const isLastRow = i === group4Data.length - 1;
+
+                // 处理非最后一期的命中逻辑
+                let markedRange = sortedZodiacs.join(', ');
+                let isHit = null;
+                let top3Hit = false, upper3Hit = false, middle3Hit = false, lower3Hit = false;
+
+                // 新增：百列、两百、五百命中
+                let baiCell = '', liangbaiCell = '', wubaiCell = '';
+
+                if (!isLastRow) {
+                    const nextTehao = dataTable[i + 1]["特号"].padStart(2, "0");
+                    const nextZodiac = dataTable[i + 1]["生肖"];
+                    const nextZodiacIndex = sortedZodiacs.indexOf(nextZodiac);
+
+                    // 检查是否命中（前6个生肖）
+                    isHit = nextZodiacIndex >= 0 && nextZodiacIndex < 6;
+                    if (isHit) hitCount++;
+                    totalCount++;
+
+                    // 标红命中的生肖
+                    markedRange = sortedZodiacs.map(z =>
+                        z === nextZodiac ? `<span style="color: red;">${z}</span>` : z
+                    ).join(', ');
+
+                    // 检查命中区域
+                    if (nextZodiacIndex >= 0 && nextZodiacIndex < 3) {
+                        top3Hit = true; countTop3 = 0;
+                    } else if (nextZodiacIndex >= 3 && nextZodiacIndex < 6) {
+                        upper3Hit = true; countUpper3 = 0;
+                    } else if (nextZodiacIndex >= 6 && nextZodiacIndex < 9) {
+                        middle3Hit = true; countMiddle3 = 0;
+                    } else if (nextZodiacIndex >= 9 && nextZodiacIndex < 12) {
+                        lower3Hit = true; countLower3 = 0;
+                    }
+                    if (!top3Hit) countTop3++;
+                    if (!upper3Hit) countUpper3++;
+                    if (!middle3Hit) countMiddle3++;
+                    if (!lower3Hit) countLower3++;
+
+                    // 百列
+                    const baiRange = rangeData[i].bai;
+                    if (baiRange.length === 28) {
+                        if (baiRange.includes(nextTehao)) {
+                            baiCell = '<span class="correct">✔</span>'; baiCount = 0;
+                        } else {
+                            baiCount++; baiCell = baiCount;
+                        }
+                    } else {
+                        baiCell = '';
+                    }
+                    // 两百
+                    const liangbaiRange = rangeData[i].liangbai;
+                    if (liangbaiRange.length === 28) {
+                        if (liangbaiRange.includes(nextTehao)) {
+                            liangbaiCell = '<span class="correct">✔</span>'; liangbaiCount = 0;
+                        } else {
+                            liangbaiCount++; liangbaiCell = liangbaiCount;
+                        }
+                    } else {
+                        liangbaiCell = '';
+                    }
+                    // 五百
+                    if (fiveHundredRange.includes(nextTehao)) {
+                        wubaiCell = '<span class="correct">✔</span>'; wubaiCount = 0;
+                    } else {
+                        wubaiCount++; wubaiCell = wubaiCount;
+                    }
+                }
+
+                // 生成当前行的HTML
+                tableRows += `
+                    <tr>
+                        <td>${data["期数"]}</td>
+                        <td>${data["特号"]}</td>
+                        <td>${data["生肖"]}</td>
+                        <td>${markedRange}</td>
+                        <td class="separator">${isHit !== null ? (isHit ? '<span class="correct">✔</span>' : '<span class="wrong">✘</span>') : ''}</td>
+
+                        <td>${!isLastRow ? (top3Hit ? '<span class="correct">✔</span>' : countTop3) : ''}</td>
+                        <td>${!isLastRow ? (upper3Hit ? '<span class="correct">✔</span>' : countUpper3) : ''}</td>
+                        <td>${!isLastRow ? (middle3Hit ? '<span class="correct">✔</span>' : countMiddle3) : ''}</td>
+                        <td>${!isLastRow ? (lower3Hit ? '<span class="correct">✔</span>' : countLower3) : ''}</td>
+
+                        <td class="separator">${!isLastRow ? baiCell : ''}</td>
+                        <td>${!isLastRow ? liangbaiCell : ''}</td>
+                        <td>${!isLastRow ? wubaiCell : ''}</td>
+                    </tr>
+                `;
+            }
+
+            // 一次性插入所有行
+            tbody.innerHTML = tableRows;
+            tableContainer.appendChild(table);
+
+            // 更新命中率
+            const hitRate = totalCount > 0 ? (hitCount / totalCount * 100).toFixed(2) : 0;
+            const titleElement = document.querySelector('h2[style="text-align: center;"]');
+            if (titleElement) {
+                titleElement.innerHTML = `范围 倒序排序 <span style="font-size: 0.8em; color: #666;">前六(命中率: ${hitRate}%)</span>`;
+            }
+        }
+
+        // 调用渲染函数
+        renderHitTable();
+
+    </script>
+</body>
+
+</html>

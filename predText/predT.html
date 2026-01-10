@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <title>平码回顾</title>
+    <style>
+        body {
+            font-family: "微软雅黑", Arial, sans-serif;
+            background: #f5f6fa;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 30px auto;
+            background: #fff;
+            box-shadow: 0 2px 8px #ccc;
+        }
+
+        th,
+        td {
+            border: 1px solid #e1e1e1;
+            padding: 8px 12px;
+            text-align: center;
+        }
+
+        th {
+            background: linear-gradient(to right, #a8edea, #fed6e3);
+            position: sticky;
+            top: 0;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .highlight {
+            background: #ffe082;
+            font-weight: bold;
+        }
+
+        .correct {
+            color: green;
+            font-weight: bold;
+        }
+
+        .wrong {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 style="text-align: center;"></h2>
+    <!-- <div>
+        <span id="predHitRate">平预测命中率: 0%</span>
+        <span id="pastHitRate">往期命中率: 0%</span>
+    </div> -->
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>日期</th>
+                <th>期数</th>
+                <th>平码</th>
+                <th>特码</th>
+                <th>平预测</th>
+                <th>平预测命中</th>
+                <th>往期号码</th>
+                <th>号码数量</th>
+                <th>往期命中</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script src="./predHitDate.js"></script>
+
+    <script>
+
+        //往期 期数
+        const currentIndexNum = 9;
+
+        // 解析原始数据为结构化对象
+        function parseData(raw) {
+            const groups = [];
+            // 以每组的日期和期数作为分组依据，避免被内部空行干扰
+            const blocks = raw.trim().split(/\n\s*\n(?=\d{4}-\d{2}-\d{2}\s*\n\d+期)/);
+            for (const block of blocks) {
+                const lines = block.trim().split('\n').map(l => l.trim()).filter(Boolean);
+                if (lines.length < 6) continue;
+                const date = lines[0];
+                const period = lines[1];
+                const plusIdx = lines.findIndex(l => l === "+");
+                if (plusIdx < 0 || plusIdx + 2 >= lines.length) continue;
+                const pm = [];
+                for (let i = 2; i < plusIdx; i += 2) {
+                    pm.push({ num: lines[i], sx_wx: lines[i + 1] });
+                }
+                const tm = { num: lines[plusIdx + 1], sx_wx: lines[plusIdx + 2] };
+                groups.push({ date, period, pm, tm });
+            }
+            return groups;
+        }
+
+        // 获取往期号码（当前期和后续9期的平码号码，去重并排序）
+        function getPastNumbers(groups, currentIndex) {
+            // 如果当前期是最后一期（索引为 groups.length - 1），则没有后续数据，返回空
+            if (currentIndex === groups.length - 1) return { numbers: '', count: 0 };
+            
+            // 计算结束索引（最多往后取9期）
+            const endIndex = Math.min(groups.length - 1, currentIndex + currentIndexNum);
+            // 如果当前期到结束索引的总期数不足10期（包括当前期），返回空
+            if (endIndex - currentIndex + 1 < currentIndexNum - 1) return { numbers: '', count: 0 };
+            
+            // 收集所有平码号码
+            const pastNumbers = [];
+            for (let i = currentIndex; i <= endIndex; i++) {
+                groups[i].pm.forEach(x => pastNumbers.push(x.num.padStart(2, '0'))); // 补零为两位数
+            }
+            
+            // 去重并排序
+            const uniqueSortedNumbers = [...new Set(pastNumbers)]
+                .map(num => parseInt(num))
+                .sort((a, b) => a - b)
+                .map(num => num.toString().padStart(2, '0')); // 补零为两位数
+            
+            // 每行最多显示10个号码，超出部分换行
+            const chunkedNumbers = [];
+            for (let i = 0; i < uniqueSortedNumbers.length; i += 10) {
+                chunkedNumbers.push(uniqueSortedNumbers.slice(i, i + 10).join(','));
+            }
+            const formattedNumbers = chunkedNumbers.join(',' + '<br>');
+            
+            return {
+                numbers: formattedNumbers,
+                count: uniqueSortedNumbers.length
+            };
+        }
+
+        // 判断往期号码是否命中上一期特码（因为数据是反序的）
+        function checkPastHit(pastNumbers, prevGroup) {
+            if (!prevGroup || !pastNumbers) return '';
+            return pastNumbers.includes(prevGroup.tm.num.padStart(2, '0')) ?
+                `<span class="correct">✔</span>` : `<span class="wrong">✘</span>`;
+        }
+
+        // 计算命中率
+        function calculateHitRate(groups, hitType) {
+            let hits = 0;
+            let total = 0;
+            for (let i = 0; i < groups.length; i++) {
+                if (hitType === 'pred') {
+                    const pred = predictNextTM(groups[i]);
+                    if (checkHit(pred, groups[i - 1]).includes('✔')) hits++;
+                } else if (hitType === 'past') {
+                    const pastNumbers = getPastNumbers(groups, i).numbers;
+                    if (pastNumbers && checkPastHit(pastNumbers.replace(/<br>/g, ','), groups[i - 1]).includes('✔')) hits++;
+                }
+                total++;
+            }
+            return total > 0 ? (hits / total * 100).toFixed(2) + '%' : '0%';
+        }
+
+        function renderTable(groups) {
+            const tbody = document.querySelector('#dataTable tbody');
+            tbody.innerHTML = '';
+            for (let i = 0; i < groups.length; i++) {
+                const g = groups[i];
+                const tr = document.createElement('tr');
+                tr.innerHTML += `<td>${g.date}</td>`;
+                tr.innerHTML += `<td>${g.period}</td>`;
+                tr.innerHTML += `<td>${g.pm.map(x => `${x.num.padStart(2, '0')}/${x.sx_wx}`).join('， ')}</td>`;
+                tr.innerHTML += `<td class="highlight">${g.tm.num.padStart(2, '0')}<br>${g.tm.sx_wx}</td>`;
+                const pred = predictNextTM(g);
+                tr.innerHTML += `<td>${pred}</td>`;
+                const hit = checkHit(pred, groups[i - 1]);
+                tr.innerHTML += `<td>${hit}</td>`;
+                // 新增往期号码和号码数量列
+                const pastNumbersData = getPastNumbers(groups, i);
+                tr.innerHTML += `<td>${pastNumbersData.numbers}</td>`;
+                tr.innerHTML += `<td>${pastNumbersData.count}</td>`;
+                const pastHit = checkPastHit(pastNumbersData.numbers.replace(/<br>/g, ','), groups[i - 1]);
+                tr.innerHTML += `<td>${pastHit}</td>`;
+                tbody.appendChild(tr);
+            }
+
+            // 计算并显示命中率
+            const predHitRate = calculateHitRate(groups, 'pred');
+            const pastHitRate = calculateHitRate(groups, 'past');
+            // document.querySelector('#predHitRate').textContent = `平预测命中率: ${predHitRate}`;
+            // document.querySelector('#pastHitRate').textContent = `往期命中率: ${pastHitRate}`;
+
+            // 更新命中率
+            const titleElement = document.querySelector('h2[style="text-align: center;"]');
+            if (titleElement) {
+                titleElement.innerHTML = `平码回顾  倒序排序<br> <span style="font-size: 0.8em; color: #666;">(平预测命中率: ${predHitRate}%) (往 ${currentIndexNum}期 命中率: ${pastHitRate}%)</span>`;
+            }
+        }
+
+        
+
+        // 预测算法（示例：用本期平码的属相，预测下期特码属相）
+        function predictNextTM(group) {
+            // 取本期平码的所有属相
+            const sxSet = new Set(group.pm.map(x => x.sx_wx.split('/')[0]));
+            return Array.from(sxSet).join('、');
+        }
+
+        // 判断预测是否命中
+        function checkHit(pred, nextGroup) {
+            if (!nextGroup) return '';
+            const nextTM_SX = nextGroup.tm.sx_wx.split('/')[0];
+            return pred.includes(nextTM_SX) ?
+                `<span class="correct">✔</span>` : `<span class="wrong">✘</span>`;
+        }
+
+        const groups = parseData(rawData);
+        renderTable(groups);
+        
+        // 正序排列，最早的数据在上
+
+
+
+        // console.log(groups);
+        // renderTable([...groups].reverse()); // 用副本反转，避免原数组被破坏
+
+
+        // 打印每期特码
+        // [...groups].reverse().forEach(g => {
+        //     const [zodiac, ] = g.tm.sx_wx.split('/');
+        //     const attribute = g.tm.num;
+        //     console.log(`{ Zodiac: "${zodiac}", attribute: "${attribute}" },`);
+        // });
+
+    </script>
+</body>
+
+</html>
