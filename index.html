@@ -1,309 +1,743 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>计算工具</title>
+    <title>雾玻璃风格导航与数据展示页</title>
     <style>
+        /* 全局样式重置 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
         }
 
+        /* 页面背景 */
         body {
-            background: linear-gradient(120deg, #f0f4f8, #d9e2ec);
+            background: linear-gradient(120deg, #e0f7fa 0%, #f3e5f5 50%, #fff3e0 100%);
             min-height: 100vh;
             padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            gap: 24px;
             display: flex;
             flex-direction: column;
-        }
-
-        .title {
-            text-align: center;
-            color: #2d3748;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        /* 核心输入区样式 - 适配多行textarea */
-        .input-box {
-            background: #fff;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        }
-
-        #input1 {
-            width: 100%;
-            min-height: 120px;
-            padding: 16px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 18px;
-            color: #2d3748;
-            outline: none;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-            resize: vertical;
-            line-height: 1.6;
-        }
-
-        #input1:focus {
-            border-color: #4299e1;
-            box-shadow: 0 0 0 4px rgba(66, 153, 225, 0.1);
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            flex: 1;
-            min-width: 120px;
-            height: 50px;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        #runBtn {
-            background: #48bb78;
-            color: #fff;
-        }
-
-        #runBtn:hover {
-            background: #38a169;
-            transform: translateY(-2px);
-        }
-
-        #detailBtn {
-            background: #4299e1;
-            color: #fff;
-        }
-
-        #detailBtn:hover {
-            background: #3182ce;
-            transform: translateY(-2px);
-        }
-
-        /* 结果展示区 */
-        .result-box,
-        .detail-box,
-        .history-box,
-        .table-box {
-            background: #fff;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        }
-
-        .box-title {
-            font-size: 20px;
-            color: #2d3748;
-            font-weight: 600;
-            margin-bottom: 16px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #f0f4f8;
-        }
-
-        #Calculatordata,
-        #CalculatorVlue {
-            font-size: 18px;
-            color: #2d3748;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        .empty-tip {
-            color: #718096;
-            font-size: 16px;
-            text-align: center;
-            padding: 20px 0;
-        }
-
-        /* 历史记录表格 */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        th,
-        td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid #f0f4f8;
-        }
-
-        th {
-            background: #f7fafc;
-            color: #4a5568;
-            font-weight: 600;
-        }
-
-        tr:hover {
-            background: #f7fafc;
-        }
-
-        .history-detail-btn {
-            padding: 6px 12px;
-            background: #9f7aea;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        /* 数字颜色单元格样式（核心） */
-        .num-cell {
-            display: inline-block;
-            width: 36px;
-            height: 36px;
-            line-height: 36px;
-            text-align: center;
-            border-radius: 8px;
-            font-weight: 600;
-            color: #fff;
-            margin: 4px;
-        }
-
-        /* 数字容器：自适应排版，宽屏时可自动换列 */
-        .num-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
             align-items: center;
         }
 
-        /* 隐藏表格的“对应数字”第二列（只在本表格内生效） */
-        .table-box table th:nth-child(2),
-        .table-box table td:nth-child(2) {
-            display: none;
+        /* 主容器 - 雾玻璃核心效果 */
+        .glass-container {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            overflow: hidden;
+            margin-bottom: 20px;
         }
 
-        /* 宽屏时使用网格自动适配列数 */
-        @media (min-width: 900px) {
-            .num-list {
-                /* display: grid; */
-                grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
-                gap: 8px;
-            }
-            .num-cell {
-                width: 48px;
-                height: 48px;
-                line-height: 48px;
-                font-size: 16px;
-            }
+        /* 顶部导航区 */
+        .header {
+            padding: 24px 30px;
+            background: rgba(255, 255, 255, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.8);
         }
 
-        /* 响应式适配 - 兼容移动端textarea */
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: #718096;
+            text-align: center;
+        }
+
+        /* 按钮区域 */
+        .button-group {
+            display: flex;
+            gap: 16px;
+            padding: 24px 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* 雾玻璃按钮样式 */
+        .glass-button {
+            flex: 1;
+            min-width: 180px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 500;
+            color: #2d3748;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .glass-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .glass-button:active {
+            transform: translateY(0);
+        }
+
+        /* 按钮品牌色区分 */
+        .btn-baidu {
+            color: #2d7dd2;
+            border-color: rgba(45, 125, 210, 0.4);
+        }
+
+        .btn-sohu {
+            color: #e84a27;
+            border-color: rgba(232, 74, 39, 0.4);
+        }
+
+        .btn-douyin {
+            color: #fe2c55;
+            border-color: rgba(254, 44, 85, 0.4);
+        }
+
+        /* 数据展示区域 */
+        .data-section {
+            padding: 0 30px 30px;
+        }
+
+        /* 宽屏模式下表格一和表格二并排 */
+        .data-main-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+            margin: 24px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(72, 187, 120, 0.3);
+        }
+
+        /* 雾玻璃卡片样式 - 替代表格 */
+        .data-card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        /* 生肖数字映射样式 */
+        .zodiac-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+        }
+
+        .zodiac-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .zodiac-label {
+            width: 60px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 16px;
+        }
+
+        .number-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .number-tag {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* 波色样式 */
+        .wave-color-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .wave-color-card {
+            flex: 1;
+            min-width: 280px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .wave-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wave-color-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* 分类分组样式 */
+        .category-group-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .category-group {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .category-group-1 {
+            background: rgba(255, 240, 245, 0.7);
+            border-left: 4px solid #e53e3e;
+        }
+
+        .category-group-2 {
+            background: rgba(240, 248, 255, 0.7);
+            border-left: 4px solid #3182ce;
+        }
+
+        .category-group-3 {
+            background: rgba(240, 253, 244, 0.7);
+            border-left: 4px solid #38a169;
+        }
+
+        .category-group-4 {
+            background: rgba(255, 249, 242, 0.7);
+            border-left: 4px solid #dd6b20;
+        }
+
+        .category-item {
+            display: flex;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.4);
+        }
+
+        .category-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .category-label {
+            width: 50px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .category-value {
+            flex: 1;
+            color: #4a5568;
+        }
+
+        /* 响应式调整 */
+        /* 手机端样式 */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
+            .button-group {
+                flex-direction: column;
             }
-
-            .input-box {
-                padding: 20px;
+            
+            /* 手机端移除按钮的flex:1 */
+            .glass-button {
+                flex: none !important;
+                width: 100%;
             }
-
-            .box-title {
-                font-size: 18px;
+            
+            .zodiac-item {
+                flex-direction: column;
+                align-items: flex-start;
             }
-
-            #input1 {
-                min-height: 100px;
-                font-size: 16px;
+            
+            .zodiac-label {
+                margin-bottom: 8px;
             }
+            
+            .wave-color-section {
+                flex-direction: column;
+            }
+            
+            .number-tag {
+                width: 36px;
+                height: 36px;
+                font-size: 13px;
+            }
+            
+            .data-card {
+                padding: 16px;
+            }
+        }
 
-            .btn {
-                height: 45px;
-                font-size: 16px;
+        /* 平板/电脑端样式 */
+        @media (min-width: 769px) and (max-width: 1023px) {
+            .number-tags {
+                justify-content: flex-start;
+            }
+        }
+
+        /* 宽屏模式 (≥1024px) - 表格一和表格二并排显示 */
+        @media (min-width: 600px) {
+            .data-main-container {
+                flex-direction: row;
+                gap: 20px;
+            }
+            
+            .data-column {
+                flex: 1;
+                width: 50%;
+            }
+            
+            /* 调整宽屏下的标题间距 */
+            .data-column .section-title {
+                margin-top: 0;
             }
         }
     </style>
 </head>
-
 <body>
-    <div class="container">
-        <h1 class="title">计算工具</h1>
+    <!-- 主容器 -->
+    <div class="glass-container">
+        <!-- 顶部导航区 -->
+        <div class="header">
+            <div class="header-title">数据展示</div>
+            <div class="header-subtitle">映射数据</div>
+        </div>
 
-        <!-- 1. 核心多行输入+按钮区 -->
-        <div class="input-box">
-            <textarea id="input1" placeholder="请输入计算所需数字/内容，多个内容 换行分隔"></textarea>
-            <div class="btn-group">
-                <button class="btn" id="runBtn">运行</button>
-                <button class="btn" id="detailBtn">明细</button>
+        <!-- 按钮区域 -->
+        <div class="button-group">
+            
+            <div class="glass-button btn-douyin" onclick="window.open('./td/tableDetails.html', '_blank')">
+                打开 生肖赋值
             </div>
+            
+            <div class="glass-button btn-sohu" onclick="window.open('./rt/RangeSort.html', '_blank')">
+                打开 范围排序
+            </div>
+            <div class="glass-button btn-baidu" onclick="window.open('./predText/predT.html', '_blank')">
+                打开 平码回顾
+            </div>
+
         </div>
 
-        <!-- 2. 计算结果展示区 -->
-        <div class="result-box">
-            <h3 class="box-title">计算结果</h3>
-            <div id="Calculatordata" class="empty-tip">点击「运行」按钮查看计算结果</div>
-        </div>
+        <!-- 数据展示区域 - 宽屏并排容器 -->
+        <div class="data-section">
+            <div class="data-main-container">
+                <!-- 表格一：生肖数字映射 (左列) -->
+                <div class="data-column">
+                    <h2 class="section-title">表格一：生肖 & 波色映射</h2>
+                    
+                    <!-- 生肖数字映射卡片 -->
+                    <div class="data-card">
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">蛇</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #e53e3e;">01</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">13</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">25</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">37</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">49</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">龙</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #e53e3e;">02</div>
+                                <div class="number-tag" style="background-color: #3182ce;">14</div>
+                                <div class="number-tag" style="background-color: #3182ce;">26</div>
+                                <div class="number-tag" style="background-color: #3182ce;">38</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">兔</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #3182ce;">03</div>
+                                <div class="number-tag" style="background-color: #3182ce;">15</div>
+                                <div class="number-tag" style="background-color: #38a169;">27</div>
+                                <div class="number-tag" style="background-color: #38a169;">39</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">虎</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #3182ce;">04</div>
+                                <div class="number-tag" style="background-color: #38a169;">16</div>
+                                <div class="number-tag" style="background-color: #3182ce;">28</div>
+                                <div class="number-tag" style="background-color: #3182ce;">40</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">牛</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #38a169;">05</div>
+                                <div class="number-tag" style="background-color: #38a169;">17</div>
+                                <div class="number-tag" style="background-color: #38a169;">29</div>
+                                <div class="number-tag" style="background-color: #3182ce;">41</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">鼠</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #38a169;">06</div>
+                                <div class="number-tag" style="background-color: #38a169;">18</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">30</div>
+                                <div class="number-tag" style="background-color: #3182ce;">42</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">猪</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #e53e3e;">07</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">19</div>
+                                <div class="number-tag" style="background-color: #3182ce;">31</div>
+                                <div class="number-tag" style="background-color: #38a169;">43</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">狗</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #e53e3e;">08</div>
+                                <div class="number-tag" style="background-color: #3182ce;">20</div>
+                                <div class="number-tag" style="background-color: #38a169;">32</div>
+                                <div class="number-tag" style="background-color: #38a169;">44</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">鸡</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #3182ce;">09</div>
+                                <div class="number-tag" style="background-color: #38a169;">21</div>
+                                <div class="number-tag" style="background-color: #38a169;">33</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">45</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">猴</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #3182ce;">10</div>
+                                <div class="number-tag" style="background-color: #38a169;">22</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">34</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">46</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">羊</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #38a169;">11</div>
+                                <div class="number-tag" style="background-color: #38a169;">23</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">35</div>
+                                <div class="number-tag" style="background-color: #38a169;">47</div>
+                            </div>
+                        </div>
+                        <div class="zodiac-item">
+                            <div class="zodiac-label">马</div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #e53e3e;">12</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">24</div>
+                                <div class="number-tag" style="background-color: #3182ce;">36</div>
+                                <div class="number-tag" style="background-color: #3182ce;">48</div>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- 4. 历史记录板块 -->
-        <div class="history-box">
-            <h3 class="box-title">历史计算记录</h3>
-            <table id="historyTable">
-                <thead>
-                    <tr>
-                        <th>序号</th>
-                        <th>输入内容</th>
-                        <th>计算结果</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="historyBody">
-                    <tr>
-                        <td colspan="4" class="empty-tip">暂无历史记录</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                    <!-- 波色映射卡片 -->
+                    <div class="wave-color-section">
+                        <div class="wave-color-card">
+                            <div class="wave-title">
+                                <span class="wave-color-dot" style="background-color: #e53e3e;"></span>
+                                红波
+                            </div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #e53e3e;">01</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">02</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">07</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">08</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">12</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">13</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">18</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">19</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">23</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">24</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">29</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">30</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">34</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">35</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">40</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">45</div>
+                                <div class="number-tag" style="background-color: #e53e3e;">46</div>
+                            </div>
+                        </div>
+                        <div class="wave-color-card">
+                            <div class="wave-title">
+                                <span class="wave-color-dot" style="background-color: #3182ce;"></span>
+                                蓝波
+                            </div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #3182ce;">03</div>
+                                <div class="number-tag" style="background-color: #3182ce;">04</div>
+                                <div class="number-tag" style="background-color: #3182ce;">09</div>
+                                <div class="number-tag" style="background-color: #3182ce;">10</div>
+                                <div class="number-tag" style="background-color: #3182ce;">14</div>
+                                <div class="number-tag" style="background-color: #3182ce;">15</div>
+                                <div class="number-tag" style="background-color: #3182ce;">20</div>
+                                <div class="number-tag" style="background-color: #3182ce;">25</div>
+                                <div class="number-tag" style="background-color: #3182ce;">26</div>
+                                <div class="number-tag" style="background-color: #3182ce;">31</div>
+                                <div class="number-tag" style="background-color: #3182ce;">36</div>
+                                <div class="number-tag" style="background-color: #3182ce;">37</div>
+                                <div class="number-tag" style="background-color: #3182ce;">41</div>
+                                <div class="number-tag" style="background-color: #3182ce;">42</div>
+                                <div class="number-tag" style="background-color: #3182ce;">47</div>
+                                <div class="number-tag" style="background-color: #3182ce;">48</div>
+                            </div>
+                        </div>
+                        <div class="wave-color-card">
+                            <div class="wave-title">
+                                <span class="wave-color-dot" style="background-color: #38a169;"></span>
+                                绿波
+                            </div>
+                            <div class="number-tags">
+                                <div class="number-tag" style="background-color: #38a169;">05</div>
+                                <div class="number-tag" style="background-color: #38a169;">06</div>
+                                <div class="number-tag" style="background-color: #38a169;">11</div>
+                                <div class="number-tag" style="background-color: #38a169;">16</div>
+                                <div class="number-tag" style="background-color: #38a169;">17</div>
+                                <div class="number-tag" style="background-color: #38a169;">21</div>
+                                <div class="number-tag" style="background-color: #38a169;">22</div>
+                                <div class="number-tag" style="background-color: #38a169;">27</div>
+                                <div class="number-tag" style="background-color: #38a169;">28</div>
+                                <div class="number-tag" style="background-color: #38a169;">32</div>
+                                <div class="number-tag" style="background-color: #38a169;">33</div>
+                                <div class="number-tag" style="background-color: #38a169;">38</div>
+                                <div class="number-tag" style="background-color: #38a169;">39</div>
+                                <div class="number-tag" style="background-color: #38a169;">43</div>
+                                <div class="number-tag" style="background-color: #38a169;">44</div>
+                                <div class="number-tag" style="background-color: #38a169;">49</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- 3. 计算明细展示区 -->
-        <div class="detail-box">
-            <h3 class="box-title">计算明细</h3>
-            <div id="CalculatorVlue" class="empty-tip">点击「明细」按钮查看计算详情</div>
-        </div>
+                <!-- 表格二：生肖分类映射 (右列) -->
+                <div class="data-column">
+                    <h2 class="section-title">表格二：生肖分类映射</h2>
+                    
+                    <!-- fieldThreeMap 分组展示 (每3行一组) -->
+                    <div class="data-card">
+                        <div class="category-group-container">
+                            <!-- 第一组 -->
+                            <div class="category-group category-group-1">
+                                <div class="category-item">
+                                    <div class="category-label">菜</div>
+                                    <div class="category-value">鼠, 猴, 鸡, 猪</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">草</div>
+                                    <div class="category-value">牛, 兔, 马, 羊</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">肉</div>
+                                    <div class="category-value">虎, 龙, 蛇, 狗</div>
+                                </div>
+                            </div>
+                            <!-- 第二组 -->
+                            <div class="category-group category-group-2">
+                                <div class="category-item">
+                                    <div class="category-label">天</div>
+                                    <div class="category-value">鼠, 兔, 马, 鸡</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">地</div>
+                                    <div class="category-value">牛, 龙, 羊, 狗</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">人</div>
+                                    <div class="category-value">虎, 蛇, 猴, 猪</div>
+                                </div>
+                            </div>
+                            <!-- 第三组 -->
+                            <div class="category-group category-group-3">
+                                <div class="category-item">
+                                    <div class="category-label">福</div>
+                                    <div class="category-value">鼠, 虎, 龙, 马</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">禄</div>
+                                    <div class="category-value">牛, 兔, 猴, 猪</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">寿</div>
+                                    <div class="category-value">蛇, 羊, 鸡, 狗</div>
+                                </div>
+                            </div>
+                            <!-- 第四组 -->
+                            <div class="category-group category-group-4">
+                                <div class="category-item">
+                                    <div class="category-label">日</div>
+                                    <div class="category-value">牛, 龙, 马, 猪</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">月</div>
+                                    <div class="category-value">鼠, 蛇, 羊, 狗</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">星</div>
+                                    <div class="category-value">虎, 兔, 猴, 鸡</div>
+                                </div>
+                            </div>
+                            <!-- 第五组 -->
+                            <div class="category-group category-group-1">
+                                <div class="category-item">
+                                    <div class="category-label">魏</div>
+                                    <div class="category-value">鼠, 牛, 狗, 猪</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">蜀</div>
+                                    <div class="category-value">马, 羊, 猴, 鸡</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">吴</div>
+                                    <div class="category-value">虎, 兔, 龙, 蛇</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- 5. 生肖+数字颜色对照表 -->
-        <div class="table-box">
-            <h3 class="box-title">25版12生肖数字对照表</h3>
-            <table>
-                    <thead>
-                        <tr>
-                            <th>生肖</th>
-                            <th>对应数字</th>
-                            <th>数字颜色示例</th>
-                        </tr>
-                    </thead>
-                <tbody id="zodiacColorBody"></tbody>
-            </table>
+                    <!-- fieldFourMap 分组展示 (每4行一组) -->
+                    <div class="data-card">
+                        <div class="category-group-container">
+                            <!-- 第一组 -->
+                            <div class="category-group category-group-1">
+                                <div class="category-item">
+                                    <div class="category-label">琴</div>
+                                    <div class="category-value">兔, 蛇, 鸡</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">棋</div>
+                                    <div class="category-value">鼠, 牛, 狗</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">书</div>
+                                    <div class="category-value">虎, 龙, 马</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">画</div>
+                                    <div class="category-value">猴, 羊, 猪</div>
+                                </div>
+                            </div>
+                            <!-- 第二组 -->
+                            <div class="category-group category-group-2">
+                                <div class="category-item">
+                                    <div class="category-label">春</div>
+                                    <div class="category-value">虎, 兔, 龙</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">夏</div>
+                                    <div class="category-value">蛇, 马, 羊</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">秋</div>
+                                    <div class="category-value">猴, 鸡, 狗</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">冬</div>
+                                    <div class="category-value">猪, 牛, 鼠</div>
+                                </div>
+                            </div>
+                            <!-- 第三组 -->
+                            <div class="category-group category-group-3">
+                                <div class="category-item">
+                                    <div class="category-label">东</div>
+                                    <div class="category-value">兔, 龙, 蛇</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">西</div>
+                                    <div class="category-value">马, 羊, 猴</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">南</div>
+                                    <div class="category-value">鸡, 狗, 猪</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">北</div>
+                                    <div class="category-value">鼠, 牛, 虎</div>
+                                </div>
+                            </div>
+                            <!-- 第四组 -->
+                            <div class="category-group category-group-4">
+                                <div class="category-item">
+                                    <div class="category-label">梅</div>
+                                    <div class="category-value">鼠, 龙, 猴</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">兰</div>
+                                    <div class="category-value">兔, 羊, 猪</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">菊</div>
+                                    <div class="category-value">虎, 马, 狗</div>
+                                </div>
+                                <div class="category-item">
+                                    <div class="category-label">竹</div>
+                                    <div class="category-value">牛, 蛇, 鸡</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // ========== 全局核心数据定义 ==========
+        // 完整数据存储（供扩展使用）
         const zodiacMap = {
             "蛇": [1, 13, 25, 37, 49],
             "龙": [2, 14, 26, 38],
@@ -320,193 +754,66 @@
         };
 
         const colorMap = {
-            // #e53e3e
             '红波': [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46],
-
-            // #3182ce
             '蓝波': [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48],
-
-            // #38a169
             '绿波': [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
         };
 
-        // 根据 colorMap 生成数字到颜色的映射，优先使用指定波色颜色
-        const numColorMap = {};
         const waveColor = {
             '红波': '#e53e3e',
             '蓝波': '#3182ce',
             '绿波': '#38a169'
         };
-        for (const [wave, nums] of Object.entries(colorMap)) {
-            const color = waveColor[wave] || '#6b7280';
-            nums.forEach(n => { numColorMap[n] = color; });
+
+        // 数字格式化函数 (1-9 -> 01-09)
+        function formatNumber(num) {
+            return num.toString().padStart(2, '0');
         }
 
-        let historyList = []; // 历史记录
-
-        class LotteryCalculator {
-            constructor() {
-                this.delimiters = /[\s,，、.．\-－~～一]+/;
-            }
-
-            calculate(input) {
-                const events = this._parseInput(String(input || ""));
-                const totalAmount = events.reduce((s, e) => s + (e.amount || 0), 0);
-                return { totalAmount, details: events, breakdown: events };
-            }
-
-            _parseInput(input) {
-                const events = [];
-                const lines = input.split('\n').map(l => l.trim()).filter(Boolean);
-
-                lines.forEach(line => {
-                    let match;
-                    // 数字各X、买X、一个买X
-                    match = line.match(/^([\d\s,，、.．\-－~～一]+)\s*(?:各|买|一个买)\s*(\d+)/);
-                    if (match) {
-                        const numbers = this._parseNumbers(match[1]);
-                        if (numbers.length) {
-                            events.push({ type: 'single', desc: `号码${numbers.join(',')} 各${match[2]}`, numbers, amount: numbers.length * parseInt(match[2]) });
-                        }
-                        return;
-                    }
-
-                    // 多生肖各号20
-                    match = line.match(/((?:鼠|牛|虎|兔|龙|蛇|马|羊|猴|鸡|狗|猪)(?:[鼠牛虎兔龙蛇马羊猴鸡狗猪])*)[号数]*各号?\s*(\d+)/);
-                    if (match) {
-                        const animals = match[1].match(/鼠|牛|虎|兔|龙|蛇|马|羊|猴|鸡|狗|猪/g) || [];
-                        let nums = [];
-                        animals.forEach(a => { nums = nums.concat(zodiacMap[a] || []); });
-                        nums = [...new Set(nums)];
-                        events.push({ type: 'zodiac', desc: `${animals.join('')} 各号${match[2]}`, numbers: nums, amount: nums.length * parseInt(match[2]) });
-                        return;
-                    }
-
-                    // 波色各号X
-                    match = line.match(/(红波|蓝波|绿波)[号数]*各号?\s*(\d+)/);
-                    if (match) {
-                        const nums = colorMap[match[1]] || [];
-                        events.push({ type: 'color', desc: `${match[1]} 各号${match[2]}`, numbers: nums, amount: nums.length * parseInt(match[2]) });
-                        return;
-                    }
-
-                    // 连肖（简单处理为记录描述）
-                    match = line.match(/(平特|二连肖|三连肖)\s*([\u4e00-\u9fa5,，]+)\s*(\d+)/);
-                    if (match) {
-                        events.push({ type: 'combo', desc: `${match[1]} ${match[2]} 各${match[3]}`, animals: match[2].split(/[,，]/), amount: parseInt(match[3]) });
-                        return;
-                    }
-                });
-
-                return events;
-            }
-
-            _parseNumbers(str) {
-                return String(str).split(this.delimiters).map(s => parseInt(s)).filter(n => !isNaN(n) && n >= 1 && n <= 49);
-            }
-        }
-
-        // DOM
-        const input1 = document.getElementById('input1');
-        const runBtn = document.getElementById('runBtn');
-        const detailBtn = document.getElementById('detailBtn');
-        const calcResultDom = document.getElementById('Calculatordata');
-        const calcDetailDom = document.getElementById('CalculatorVlue');
-        const historyBody = document.getElementById('historyBody');
-        const zodiacColorBody = document.getElementById('zodiacColorBody');
-
-        // 当前运行结果缓存
-        window.currentResult = null;
-        window.currentDetail = null;
-
-        runBtn.addEventListener('click', () => {
-            const inputVal = input1.value.trim();
-            const calculator = new LotteryCalculator();
-            const resultObj = calculator.calculate(inputVal);
-            window.currentResult = resultObj;
-            window.currentDetail = resultObj.details;
-            if (!resultObj.details || resultObj.details.length === 0) {
-                calcResultDom.innerHTML = '无可计算内容';
-                calcDetailDom.innerHTML = '暂无计算明细，请先输入有效内容并点击「运行」';
-                return; // 不加入历史记录
-            }
-            calcResultDom.innerHTML = `总金额: ${resultObj.totalAmount}`;
-            calcDetailDom.innerHTML = '点击「明细」按钮查看计算详情';
-            addToHistory(inputVal, resultObj.totalAmount, resultObj.details);
+        // 生成数字到颜色的映射
+        const numColorMap = {};
+        Object.keys(colorMap).forEach(wave => {
+            colorMap[wave].forEach(num => {
+                numColorMap[num] = waveColor[wave];
+            });
         });
 
-        detailBtn.addEventListener('click', () => {
-            if (!window.currentDetail) {
-                calcDetailDom.innerHTML = '暂无计算明细，请先点击「运行」';
-                return;
-            }
-            const html = window.currentDetail.map(it => `<div>${formatDesc(it.desc||'')}: ${it.amount||0}</div>`).join('');
-            calcDetailDom.innerHTML = html || '暂无计算明细';
-        });
+        const fieldThreeMap = {
+            "菜": ["鼠", "猴", "鸡", "猪"],
+            "草": ["牛", "兔", "马", "羊"],
+            "肉": ["虎", "龙", "蛇", "狗"],
+            "天": ["鼠", "兔", "马", "鸡"],
+            "地": ["牛", "龙", "羊", "狗"],
+            "人": ["虎", "蛇", "猴", "猪"],
+            "福": ["鼠", "虎", "龙", "马"],
+            "禄": ["牛", "兔", "猴", "猪"],
+            "寿": ["蛇", "羊", "鸡", "狗"],
+            "日": ["牛", "龙", "马", "猪"],
+            "月": ["鼠", "蛇", "羊", "狗"],
+            "星": ["虎", "兔", "猴", "鸡"],
+            "魏": ["鼠", "牛", "狗", "猪"],
+            "蜀": ["马", "羊", "猴", "鸡"],
+            "吴": ["虎", "兔", "龙", "蛇"],
+        };
 
-        function addToHistory(inputVal, result, detail) {
-            const historyItem = { inputVal, result, detail, id: Date.now().toString() };
-            historyList.unshift(historyItem);
-            localStorage.setItem('lotteryHistory', JSON.stringify(historyList));
-            renderHistoryTable();
-        }
-
-        function renderHistoryTable() {
-            if (!historyList || historyList.length === 0) {
-                historyBody.innerHTML = `<tr><td colspan="4" class="empty-tip">暂无历史记录</td></tr>`;
-                return;
-            }
-            historyBody.innerHTML = historyList.map((item, index) => `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${item.inputVal}</td>
-                    <td>${item.result}</td>
-                    <td><button class="history-detail-btn" onclick="showHistoryDetail('${item.id}')">查看明细</button></td>
-                </tr>
-            `).join('');
-        }
-
-        function showHistoryDetail(id) {
-            const item = historyList.find(it => it.id === id);
-            if (!item) return;
-            const detail = item.detail;
-            if (Array.isArray(detail)) {
-                calcDetailDom.innerHTML = detail.map(d => `<div>${formatDesc(d.desc||'')}: ${d.amount||0}</div>`).join('');
-            } else if (typeof detail === 'string') {
-                calcDetailDom.innerHTML = detail;
-            } else {
-                calcDetailDom.innerHTML = JSON.stringify(detail);
-            }
-        }
-
-        // 格式化描述：移除“号码”，并将 1-9 格式化为 01-09
-        function formatDesc(desc) {
-            return String(desc).replace(/号码/g, '').replace(/\b([1-9])\b/g, '0$1');
-        }
-
-        function renderZodiacColorTable() {
-            let html = '';
-            for (let zodiac in zodiacMap) {
-                const nums = zodiacMap[zodiac];
-                const numHtml = nums.map(num => {
-                    const disp = String(num).padStart(2, '0');
-                    const color = numColorMap[num] || '#6b7280';
-                    return `<span class="num-cell" style="background:${color}">${disp}</span>`;
-                }).join('');
-                html += `<tr><td>${zodiac}</td><td style="display:none">${nums.join(',')}</td><td><div class="num-list">${numHtml}</div></td></tr>`;
-            }
-            zodiacColorBody.innerHTML = html;
-        }
-
-        window.onload = () => {
-            const localHistory = localStorage.getItem('lotteryHistory');
-            if (localHistory) {
-                try { historyList = JSON.parse(localHistory) || []; } catch (e) { historyList = []; }
-            }
-            renderHistoryTable();
-            renderZodiacColorTable();
+        const fieldFourMap = {
+            "琴": ["兔", "蛇", "鸡"],
+            "棋": ["鼠", "牛", "狗"],
+            "书": ["虎", "龙", "马"],
+            "画": ["猴", "羊", "猪"],
+            "春": ["虎", "兔", "龙"],
+            "夏": ["蛇", "马", "羊"],
+            "秋": ["猴", "鸡", "狗"],
+            "冬": ["猪", "牛", "鼠"],
+            "东": ["兔", "龙", "蛇"],
+            "西": ["马", "羊", "猴"],
+            "南": ["鸡", "狗", "猪"],
+            "北": ["鼠", "牛", "虎"],
+            "梅": ["鼠", "龙", "猴"],
+            "兰": ["兔", "羊", "猪"],
+            "菊": ["虎", "马", "狗"],
+            "竹": ["牛", "蛇", "鸡"]
         };
     </script>
 </body>
-
 </html>
