@@ -295,7 +295,7 @@
     // 保留原有打印
     fields.forEach(field => {
         if (!isNaN(last[field])) {
-            // console.log(`${field} ——包含的生肖：`, fieldMap[field].join(","));
+            console.log(`${field} ——包含的生肖：`, fieldMap[field].join(","));
             // 统计生肖次数
             fieldMap[field].forEach(zodiac => {
                 zodiacCount[zodiac] = (zodiacCount[zodiac] || 0) + 1;
@@ -342,3 +342,4 @@
         "日", "月", "星",
         "魏", "蜀", "吴"
     ]); 
+
