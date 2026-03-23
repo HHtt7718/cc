@@ -195,7 +195,7 @@
             // 更新命中率
             const titleElement = document.querySelector('h2[style="text-align: center;"]');
             if (titleElement) {
-                titleElement.innerHTML = `平码回顾  倒序排序<br> <span style="font-size: 0.8em; color: #666;">(平预测命中率: ${predHitRate}%) (往 ${currentIndexNum}期 命中率: ${pastHitRate}%)</span>`;
+                titleElement.innerHTML = `平码回顾  倒序排序<br> <span style="font-size: 0.8em; color: #666;">(平预测命中率: ${predHitRate}%) (往 ${currentIndexNum +1}期 命中率: ${pastHitRate}%)</span>`;
             }
         }
 
@@ -219,20 +219,6 @@
         const groups = parseData(rawData);
         renderTable(groups);
         
-        // 正序排列，最早的数据在上
-
-
-
-        // console.log(groups);
-        // renderTable([...groups].reverse()); // 用副本反转，避免原数组被破坏
-
-
-        // 打印每期特码
-        // [...groups].reverse().forEach(g => {
-        //     const [zodiac, ] = g.tm.sx_wx.split('/');
-        //     const attribute = g.tm.num;
-        //     console.log(`{ Zodiac: "${zodiac}", attribute: "${attribute}" },`);
-        // });
 
     </script>
 </body>
