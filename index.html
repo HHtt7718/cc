@@ -113,9 +113,11 @@
             transform: translateY(0);
         }
 
-        .btn-baidu { color: var(--color-blue); border-color: rgba(45, 125, 210, 0.4); }
-        .btn-sohu { color: #e84a27; border-color: rgba(232, 74, 39, 0.4); }
-        .btn-douyin { color: #fe2c55; border-color: rgba(254, 44, 85, 0.4); }
+        .btn-td { color: #fe2c55; border-color: rgba(254, 44, 85, 0.4); }
+        .btn-rt { color: #e84a27; border-color: rgba(232, 74, 39, 0.4); }
+        .btn-pt { color: var(--color-blue); border-color: rgba(45, 125, 210, 0.4); }
+        .btn-sx { color: #7d31ce;border-color: rgb(210 45 172 / 40%); }
+
 
         .data-section { padding: 0 30px 30px; }
         .data-main-container { width: 100%; display: flex; flex-direction: column; gap: 30px; }
@@ -259,12 +261,16 @@
 <body>
     <div class="glass-container glass">
         <div class="header">
+            <!-- <div class="header-title">数据展示</div>
+            <div class="header-subtitle">映射数据</div> -->
         </div>
 
         <div class="button-group">
-            <div class="glass-button btn-douyin" onclick="window.open('./td/tableDetails.html', '_blank')">生肖赋值</div>
-            <div class="glass-button btn-sohu" onclick="window.open('./rt/RangeSort.html', '_blank')">范围排序</div>
-            <div class="glass-button btn-baidu" onclick="window.open('./predText/predT.html', '_blank')">平码回顾</div>
+            <div class="glass-button btn-td" onclick="window.open('./td/tableDetails.html', '_blank')">生肖赋值</div>
+            <div class="glass-button btn-rt" onclick="window.open('./rt/RangeSort.html', '_blank')">范围排序</div>
+            <div class="glass-button btn-pt" onclick="window.open('./predText/predT.html', '_blank')">平码回顾</div>
+            <div class="glass-button btn-sx" onclick="window.open('./sx/sx.html', '_blank')">筛号助手</div>
+
         </div>
 
         <div class="data-section">
@@ -288,6 +294,7 @@
             },
             colorClass: { '红波':'tag-red', '蓝波':'tag-blue', '绿波':'tag-green' },
 
+            // 金木水火土（仅展示，不影响原有号码颜色）
             fiveElementsMap: {
                 '金': [4,5,12,13,26,27,34,35,42,43],
                 '木': [8,9,16,17,24,25,38,39,46,47],
@@ -320,6 +327,7 @@
 
         const formatNum = num => num.toString().padStart(2, '0');
 
+        // 只返回波色颜色（严格遵循）
         const getColorClass = num => {
             for(const [color, nums] of Object.entries(config.colorMap)){
                 if(nums.includes(num)) return config.colorClass[color];
@@ -327,9 +335,11 @@
             return '';
         };
 
+        // 渲染生肖 + 波色 + 五行
         function renderZodiac(){
             let html = `<div class="data-column"><div class="data-card">`;
 
+            // 生肖数字 —— 只使用波色颜色
             config.zodiacOrder.forEach(name => {
                 html += `<div class="zodiac-item"><div class="zodiac-label">${name}</div><div class="number-tags">`;
                 config.zodiacMap[name].forEach(num => {
@@ -339,6 +349,7 @@
             });
             html += `</div>`;
 
+            // 波色展示
             html += `<div class="wave-color-section">`;
             for(const [color, nums] of Object.entries(config.colorMap)){
                 html += `<div class="wave-color-card"><div class="wave-title">
@@ -351,6 +362,7 @@
             }
             html += `</div>`;
 
+            // 五行展示（数字颜色依旧遵循波色）
             html += `<h2 class="section-title">五行 数字映射</h2><div class="wave-color-section">`;
             for(const [xing, nums] of Object.entries(config.fiveElementsMap)){
                 html += `<div class="wave-color-card"><div class="wave-title">
@@ -365,6 +377,7 @@
             return html + `</div></div>`;
         }
 
+        // 表格二卡片背景区分
         function renderCategory(){
             let html = `<div class="data-column"><div class="data-card">`;
 
