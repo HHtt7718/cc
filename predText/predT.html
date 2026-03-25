@@ -5,59 +5,118 @@
     <meta charset="UTF-8">
     <title>平码回顾</title>
     <style>
-        body {
-            font-family: "微软雅黑", Arial, sans-serif;
-            background: #f5f6fa;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
+        /* 低亮度深色背景（护眼） */
+        body {
+            font-family: "微软雅黑", Arial, sans-serif;
+            background: linear-gradient(135deg, #45617c 0%, #ababff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 深色毛玻璃按钮 */
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 15px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-2px);
+        }
+
+        /* 深色毛玻璃表格 */
         table {
             border-collapse: collapse;
             width: 100%;
+            max-width: 1400px;
             margin: 30px auto;
-            background: #fff;
-            box-shadow: 0 2px 8px #ccc;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
         }
 
         th,
         td {
-            border: 1px solid #e1e1e1;
-            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 15px;
             text-align: center;
+            color: #e0e0e0;
         }
 
+        /* 表头 */
         th {
-            background: linear-gradient(to right, #a8edea, #fed6e3);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             position: sticky;
             top: 0;
+            font-weight: bold;
+            color: #ffffff;
         }
 
         tr:nth-child(even) {
-            background: #f9f9f9;
+            background: rgba(0, 0, 0, 0.1);
         }
 
+        /* 特码配色（红色，适配叉号） */
         .highlight {
-            background: #ffe082;
+            background: linear-gradient(135deg, #6a5656, #685c5c) !important;
+            color: #fff !important;
             font-weight: bold;
+            border-radius: 10px;
         }
 
+        /* 绿色对勾 */
         .correct {
-            color: green;
+            color: #10b981 !important;
             font-weight: bold;
+            font-size: 18px;
         }
 
+        /* 红色叉号 */
         .wrong {
-            color: red;
+            color: #f87171 !important;
             font-weight: bold;
+            font-size: 18px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #ffffff;
+            margin: 20px 0;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .btn-box {
+            text-align: center;
+            margin: 20px 0;
         }
     </style>
 </head>
 
 <body>
-    <h2 style="text-align: center;"></h2>
-    <!-- <div>
-        <span id="predHitRate">平预测命中率: 0%</span>
-        <span id="pastHitRate">往期命中率: 0%</span>
-    </div> -->
+    <h2></h2>
+    <div class="btn-box">
+        <button id="copyBtn" class="glass-btn">复制最新一期往期号码</button>
+    </div>
     <table id="dataTable">
         <thead>
             <tr>
@@ -78,14 +137,12 @@
     <script src="./predHitDate.js"></script>
 
     <script>
-
         //往期 期数
         const currentIndexNum = 9;
 
         // 解析原始数据为结构化对象
         function parseData(raw) {
             const groups = [];
-            // 以每组的日期和期数作为分组依据，避免被内部空行干扰
             const blocks = raw.trim().split(/\n\s*\n(?=\d{4}-\d{2}-\d{2}\s*\n\d+期)/);
             for (const block of blocks) {
                 const lines = block.trim().split('\n').map(l => l.trim()).filter(Boolean);
@@ -104,42 +161,31 @@
             return groups;
         }
 
-        // 获取往期号码（当前期和后续9期的平码号码，去重并排序）
+        // 获取往期号码
         function getPastNumbers(groups, currentIndex) {
-            // 如果当前期是最后一期（索引为 groups.length - 1），则没有后续数据，返回空
             if (currentIndex === groups.length - 1) return { numbers: '', count: 0 };
-            
-            // 计算结束索引（最多往后取9期）
             const endIndex = Math.min(groups.length - 1, currentIndex + currentIndexNum);
-            // 如果当前期到结束索引的总期数不足10期（包括当前期），返回空
             if (endIndex - currentIndex + 1 < currentIndexNum - 1) return { numbers: '', count: 0 };
-            
-            // 收集所有平码号码
             const pastNumbers = [];
             for (let i = currentIndex; i <= endIndex; i++) {
-                groups[i].pm.forEach(x => pastNumbers.push(x.num.padStart(2, '0'))); // 补零为两位数
+                groups[i].pm.forEach(x => pastNumbers.push(x.num.padStart(2, '0')));
             }
-            
-            // 去重并排序
             const uniqueSortedNumbers = [...new Set(pastNumbers)]
                 .map(num => parseInt(num))
                 .sort((a, b) => a - b)
-                .map(num => num.toString().padStart(2, '0')); // 补零为两位数
-            
-            // 每行最多显示10个号码，超出部分换行
+                .map(num => num.toString().padStart(2, '0'));
             const chunkedNumbers = [];
             for (let i = 0; i < uniqueSortedNumbers.length; i += 10) {
                 chunkedNumbers.push(uniqueSortedNumbers.slice(i, i + 10).join(','));
             }
             const formattedNumbers = chunkedNumbers.join(',' + '<br>');
-            
             return {
                 numbers: formattedNumbers,
                 count: uniqueSortedNumbers.length
             };
         }
 
-        // 判断往期号码是否命中上一期特码（因为数据是反序的）
+        // 判断往期号码是否命中
         function checkPastHit(pastNumbers, prevGroup) {
             if (!prevGroup || !pastNumbers) return '';
             return pastNumbers.includes(prevGroup.tm.num.padStart(2, '0')) ?
@@ -177,7 +223,6 @@
                 tr.innerHTML += `<td>${pred}</td>`;
                 const hit = checkHit(pred, groups[i - 1]);
                 tr.innerHTML += `<td>${hit}</td>`;
-                // 新增往期号码和号码数量列
                 const pastNumbersData = getPastNumbers(groups, i);
                 tr.innerHTML += `<td>${pastNumbersData.numbers}</td>`;
                 tr.innerHTML += `<td>${pastNumbersData.count}</td>`;
@@ -186,24 +231,16 @@
                 tbody.appendChild(tr);
             }
 
-            // 计算并显示命中率
             const predHitRate = calculateHitRate(groups, 'pred');
             const pastHitRate = calculateHitRate(groups, 'past');
-            // document.querySelector('#predHitRate').textContent = `平预测命中率: ${predHitRate}`;
-            // document.querySelector('#pastHitRate').textContent = `往期命中率: ${pastHitRate}`;
-
-            // 更新命中率
-            const titleElement = document.querySelector('h2[style="text-align: center;"]');
+            const titleElement = document.querySelector('h2');
             if (titleElement) {
-                titleElement.innerHTML = `平码回顾  倒序排序<br> <span style="font-size: 0.8em; color: #666;">(平预测命中率: ${predHitRate}%) (往 ${currentIndexNum +1}期 命中率: ${pastHitRate}%)</span>`;
+                titleElement.innerHTML = `平码回顾  倒序排序<br> <span style="font-size: 0.8em; color: #e0e0e0;">(平预测命中率: ${predHitRate}%) (往 ${currentIndexNum +1}期 命中率: ${pastHitRate}%)</span>`;
             }
         }
 
-        
-
-        // 预测算法（示例：用本期平码的属相，预测下期特码属相）
+        // 预测算法
         function predictNextTM(group) {
-            // 取本期平码的所有属相
             const sxSet = new Set(group.pm.map(x => x.sx_wx.split('/')[0]));
             return Array.from(sxSet).join('、');
         }
@@ -216,9 +253,63 @@
                 `<span class="correct">✔</span>` : `<span class="wrong">✘</span>`;
         }
 
+        // ===================== 终极修复：复制功能（兼容所有环境，无任何报错） =====================
+        function copyLatestPastNumbers() {
+            try {
+                // 获取最新一期数据
+                const firstRow = document.querySelector('#dataTable tbody tr:first-child');
+                if (!firstRow) {
+                    console.log('❌ 复制失败：暂无数据');
+                    alert('暂无数据可复制');
+                    return;
+                }
+
+                // 获取往期号码单元格
+                const tds = firstRow.querySelectorAll('td');
+                if (tds.length < 7) {
+                    console.log('❌ 复制失败：表格数据异常');
+                    return;
+                }
+                const pastNumberCell = tds[6];
+
+                // 格式化纯文本内容
+                let copyContent = pastNumberCell.textContent
+                    .replace(/\s+/g, ',')
+                    .replace(/,+/g, ',')
+                    .replace(/^,|,$/g, '');
+
+                if (!copyContent) {
+                    console.log('❌ 复制失败：号码为空');
+                    alert('本期暂无往期号码');
+                    return;
+                }
+
+                // 传统兼容复制法（本地/浏览器都能用，永不报错）
+                const textArea = document.createElement('textarea');
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                textArea.value = copyContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                // 成功提示
+                // console.log('✅ 复制成功！最新一期往期号码：', copyContent);
+                // alert(`复制成功！\n号码：${copyContent}`);
+                alert(`复制成功`);
+
+
+            } catch (error) {
+                console.error('❌ 复制异常：', error);
+                alert('复制失败，请重试');
+            }
+        }
+
+        // 初始化
         const groups = parseData(rawData);
         renderTable(groups);
-        
+        document.getElementById('copyBtn').addEventListener('click', copyLatestPastNumbers);
 
     </script>
 </body>
