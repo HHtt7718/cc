@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>生肖表格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 10px;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            width: 100%;
+            min-width: 500px;
+            border-collapse: collapse;
+            color: #fff;
+            text-align: center;
+        }
+
+        .table th {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 6px;
+            font-size: clamp(13px, 2vw, 16px);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 12px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: clamp(12px, 1.5vw, 14px);
+        }
+
+        .table tbody tr {
+            cursor: pointer;
+            transition: background 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .zodiac-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .zodiac-item {
+            width: clamp(28px, 4vw, 38px);
+            height: clamp(28px, 4vw, 38px);
+            line-height: clamp(28px, 4vw, 38px);
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: clamp(10px, 1.5vw, 12px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .z-flat {
+            background: #4CAF50;
+            color: #000;
+        }
+
+        .z-special {
+            background: #2196F3;
+            color: #000;
+        }
+
+        .z-both {
+            background: linear-gradient(45deg, #4CAF50, #2196F3);
+            color: #000;
+        }
+
+        .tag-red {
+            background: #f44336;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .tag-blue {
+            background: #2196F3;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .tag-green {
+            background: #4CAF50;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* 详情行 - 自适应横向排列 */
+        .detail-row {
+            background: rgba(255, 255, 255, 0.08);
+            display: none;
+        }
+
+        .detail-content {
+            padding: 12px 15px;
+            /* 核心：横向排列 + 自动换行 */
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            color: #fff;
+            font-size: clamp(12px, 1.5vw, 14px);
+        }
+
+        /* 复制按钮优化：改名+背景色 */
+        .copy-btn {
+            background: #2196F3;
+            border: none;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            appearance: none;
+            font-size: clamp(12px, 1.5vw, 14px);
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #1976D2;
+        }
+
+        .copy-tip {
+            color: #4CAF50;
+            font-size: clamp(11px, 1.2vw, 12px);
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glass">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>期数</th>
+                        <th>生肖图</th>
+                        <th>特号</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../predText/predHitDate.js"></script>
+
+    <script>
+
+        // 12生肖固定顺序（排序核心）
+        const ZODIAC = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+        const colorMap = {
+            '红': [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46],
+            '蓝': [3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48],
+            '绿': [5, 6, 11, 16, 17, 21, 22, 27, 28, 32, 33, 38, 39, 43, 44, 49]
+        };
+        const colorClass = { 红: 'tag-red', 蓝: 'tag-blue', 绿: 'tag-green' };
+
+        let countMap = {};
+        ZODIAC.forEach(z => countMap[z] = 0);
+        let dataList = [];
+
+        // 1. 解析数据
+        function parseData() {
+            const lines = rawData.split('\n').map(i => i.trim()).filter(Boolean);
+            const result = [];
+            let index = 0;
+            while (index < lines.length) {
+                lines[index++]; // 删除日期，直接跳过
+                const period = lines[index++];
+                const flats = [];
+                for (let i = 0; i < 6; i++) {
+                    const num = lines[index++];
+                    const zodiac = lines[index++].split('/')[0];
+                    flats.push({ num, zodiac });
+                }
+                index++;
+                const specialNum = lines[index++];
+                const specialZodiac = lines[index++].split('/')[0];
+                result.push({
+                    period, flats, special: { num: specialNum, zodiac: specialZodiac },
+                    expanded: false
+                });
+            }
+            return result;
+        }
+
+        // 2. 获取特号颜色
+        function getNumberColor(num) {
+            const n = parseInt(num);
+            for (const [color, arr] of Object.entries(colorMap)) {
+                if (arr.includes(n)) return color;
+            }
+            return '红';
+        }
+
+        // 3. 全兼容复制
+        function copyCompatible(text, tipId) {
+            try {
+                const input = document.createElement('input');
+                input.value = text;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+
+                const tip = document.getElementById(tipId);
+                tip.style.display = 'inline';
+                setTimeout(() => tip.style.display = 'none', 1500);
+            } catch (e) {
+                alert('复制失败，内容：' + text);
+            }
+        }
+
+        // 4. 【修复BUG】展开/收起逻辑（点击同一行可收起）
+        function toggleExpand(index) {
+            // 如果当前行已展开，直接关闭
+            if (dataList[index].expanded) {
+                dataList[index].expanded = false;
+            } else {
+                // 否则关闭所有行，展开当前行
+                dataList.forEach(item => item.expanded = false);
+                dataList[index].expanded = true;
+            }
+            renderTable();
+        }
+
+        // 5. 【核心】按固定生肖顺序排序复制内容
+        function getSortedZodiac(item) {
+            const currentZodiac = [...new Set([...item.flats.map(i => i.zodiac), item.special.zodiac])];
+            // 按照12生肖固定顺序过滤排序
+            return ZODIAC.filter(z => currentZodiac.includes(z));
+        }
+
+        // 6. 渲染表格
+        function renderTable() {
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = '';
+
+            dataList.forEach((item, index) => {
+                const flatZodiacs = item.flats.map(i => i.zodiac);
+                const specialZodiac = item.special.zodiac;
+                const sortedZodiac = getSortedZodiac(item);
+                const zodiacText = sortedZodiac.join(',');
+
+                // 生肖图渲染
+                let zodiacHtml = '<div class="zodiac-box">';
+                ZODIAC.forEach(z => {
+                    let cls = 'zodiac-item';
+                    let text = '';
+                    const isFlat = flatZodiacs.includes(z);
+                    const isSpecial = specialZodiac === z;
+
+                    if (isFlat || isSpecial) {
+                        countMap[z] = 0;
+                        text = z;
+                        cls += isFlat && isSpecial ? ' z-both' : isSpecial ? ' z-special' : ' z-flat';
+                    } else {
+                        countMap[z]++;
+                        text = countMap[z];
+                    }
+                    zodiacHtml += `<div class="${cls}">${text}</div>`;
+                });
+                zodiacHtml += '</div>';
+
+                // 特号
+                const color = getNumberColor(item.special.num);
+                const specialHtml = `<span class="${colorClass[color]}">${item.special.num} ${item.special.zodiac}</span>`;
+
+                // 主行（删除日期、数量列）
+                const mainRow = `
+            <tr onclick="toggleExpand(${index})">
+                <td>${item.period}</td>
+                <td>${zodiacHtml}</td>
+                <td>${specialHtml}</td>
+            </tr>
+        `;
+
+                // 详情行（自适应横向排列）
+                const detailRow = `
+            <tr class="detail-row" style="display:${item.expanded ? 'table-row' : 'none'}">
+                <td colspan="3">
+                    <div class="detail-content">
+                        <span>平码：${item.flats.map(i => `${i.num}(${i.zodiac})`).join(' ')}</span>
+                        <span>特号：${item.special.num}(${item.special.zodiac})</span>
+                        <button class="copy-btn" onclick="copyCompatible('${zodiacText}','tip_${index}')">复制</button>
+                        <span id="tip_${index}" class="copy-tip">复制成功！</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+                tbody.innerHTML += mainRow + detailRow;
+            });
+        }
+
+        // 初始化
+        dataList = parseData();
+        renderTable();
+    </script>
+</body>
+
+</html>
