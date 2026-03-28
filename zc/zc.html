@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>生肖表格</title>
+    <title>生肖表格 - 性能无卡顿版</title>
     <style>
         * {
             margin: 0;
@@ -124,7 +124,6 @@
             display: inline-block;
         }
 
-        /* 详情行 - 自适应横向排列 */
         .detail-row {
             background: rgba(255, 255, 255, 0.08);
             display: none;
@@ -132,7 +131,6 @@
 
         .detail-content {
             padding: 12px 15px;
-            /* 核心：横向排列 + 自动换行 */
             display: flex;
             flex-wrap: wrap;
             align-items: center;
@@ -141,7 +139,6 @@
             font-size: clamp(12px, 1.5vw, 14px);
         }
 
-        /* 复制按钮优化：改名+背景色 */
         .copy-btn {
             background: #2196F3;
             border: none;
@@ -181,12 +178,10 @@
             </table>
         </div>
     </div>
-
     <script src="../predText/predHitDate.js"></script>
 
     <script>
 
-        // 12生肖固定顺序（排序核心）
         const ZODIAC = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
         const colorMap = {
             '红': [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46],
@@ -198,6 +193,7 @@
         let countMap = {};
         ZODIAC.forEach(z => countMap[z] = 0);
         let dataList = [];
+        let lastActiveIndex = -1; // 记录当前展开行
 
         // 1. 解析数据
         function parseData() {
@@ -205,7 +201,7 @@
             const result = [];
             let index = 0;
             while (index < lines.length) {
-                lines[index++]; // 删除日期，直接跳过
+                index++; // 跳过日期
                 const period = lines[index++];
                 const flats = [];
                 for (let i = 0; i < 6; i++) {
@@ -216,15 +212,12 @@
                 index++;
                 const specialNum = lines[index++];
                 const specialZodiac = lines[index++].split('/')[0];
-                result.push({
-                    period, flats, special: { num: specialNum, zodiac: specialZodiac },
-                    expanded: false
-                });
+                result.push({ period, flats, special: { num: specialNum, zodiac: specialZodiac } });
             }
             return result;
         }
 
-        // 2. 获取特号颜色
+        // 2. 获取颜色
         function getNumberColor(num) {
             const n = parseInt(num);
             for (const [color, arr] of Object.entries(colorMap)) {
@@ -247,42 +240,45 @@
                 tip.style.display = 'inline';
                 setTimeout(() => tip.style.display = 'none', 1500);
             } catch (e) {
-                alert('复制失败，内容：' + text);
+                alert('复制失败：' + text);
             }
         }
 
-        // 4. 【修复BUG】展开/收起逻辑（点击同一行可收起）
-        function toggleExpand(index) {
-            // 如果当前行已展开，直接关闭
-            if (dataList[index].expanded) {
-                dataList[index].expanded = false;
-            } else {
-                // 否则关闭所有行，展开当前行
-                dataList.forEach(item => item.expanded = false);
-                dataList[index].expanded = true;
-            }
-            renderTable();
-        }
-
-        // 5. 【核心】按固定生肖顺序排序复制内容
+        // 4. 生肖排序
         function getSortedZodiac(item) {
-            const currentZodiac = [...new Set([...item.flats.map(i => i.zodiac), item.special.zodiac])];
-            // 按照12生肖固定顺序过滤排序
-            return ZODIAC.filter(z => currentZodiac.includes(z));
+            const current = [...new Set([...item.flats.map(i => i.zodiac), item.special.zodiac])];
+            return ZODIAC.filter(z => current.includes(z)).join(',');
         }
 
-        // 6. 渲染表格
+        // 5. 【性能核心】仅切换显示/隐藏，无DOM重建
+        function toggleDetail(index) {
+            // 关闭上一个展开的行
+            if (lastActiveIndex !== -1 && lastActiveIndex !== index) {
+                document.getElementById(`detail_${lastActiveIndex}`).style.display = 'none';
+            }
+            const currentDetail = document.getElementById(`detail_${index}`);
+            // 切换当前行
+            if (currentDetail.style.display === 'table-row') {
+                currentDetail.style.display = 'none';
+                lastActiveIndex = -1;
+            } else {
+                currentDetail.style.display = 'table-row';
+                lastActiveIndex = index;
+            }
+        }
+
+        // 6. 【性能核心】初始化一次性渲染所有DOM，后续不重建
         function renderTable() {
             const tbody = document.getElementById('tbody');
-            tbody.innerHTML = '';
+            dataList = parseData();
+            let html = '';
 
             dataList.forEach((item, index) => {
                 const flatZodiacs = item.flats.map(i => i.zodiac);
                 const specialZodiac = item.special.zodiac;
-                const sortedZodiac = getSortedZodiac(item);
-                const zodiacText = sortedZodiac.join(',');
+                const zodiacText = getSortedZodiac(item);
 
-                // 生肖图渲染
+                // 生肖图
                 let zodiacHtml = '<div class="zodiac-box">';
                 ZODIAC.forEach(z => {
                     let cls = 'zodiac-item';
@@ -302,22 +298,21 @@
                 });
                 zodiacHtml += '</div>';
 
-                // 特号
                 const color = getNumberColor(item.special.num);
                 const specialHtml = `<span class="${colorClass[color]}">${item.special.num} ${item.special.zodiac}</span>`;
 
-                // 主行（删除日期、数量列）
-                const mainRow = `
-            <tr onclick="toggleExpand(${index})">
+                // 主行
+                html += `
+            <tr onclick="toggleDetail(${index})">
                 <td>${item.period}</td>
                 <td>${zodiacHtml}</td>
                 <td>${specialHtml}</td>
             </tr>
         `;
 
-                // 详情行（自适应横向排列）
-                const detailRow = `
-            <tr class="detail-row" style="display:${item.expanded ? 'table-row' : 'none'}">
+                // 详情行（预渲染，带唯一ID）
+                html += `
+            <tr id="detail_${index}" class="detail-row">
                 <td colspan="3">
                     <div class="detail-content">
                         <span>平码：${item.flats.map(i => `${i.num}(${i.zodiac})`).join(' ')}</span>
@@ -328,13 +323,12 @@
                 </td>
             </tr>
         `;
-
-                tbody.innerHTML += mainRow + detailRow;
             });
+
+            tbody.innerHTML = html;
         }
 
-        // 初始化
-        dataList = parseData();
+        // 初始化渲染一次即可
         renderTable();
     </script>
 </body>
