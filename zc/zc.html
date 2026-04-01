@@ -351,7 +351,6 @@
             tbody.innerHTML = html;
         }
 
-        // 核心修正：取数组最后N组
         function filterData(count) {
             if(typeof event !== 'undefined' && event) {
                 document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -361,14 +360,13 @@
             if (count === 'all') {
                 dataList = [...fullData];
             } else {
-                // slice(-N) = 截取最后N条
                 dataList = fullData.slice(-count);
             }
             renderTable();
         }
 
         fullData = parseData();
-        filterData(10); // 绝对生效
+        filterData(10);
     </script>
 </body>
 
