@@ -4,28 +4,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生肖赋值 倒序排序</title>
+    <title>生肖赋值</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ff8a8a 0%, #001c4a 100%);
+            padding: 15px;
+            font-family: 'Times New Roman', serif;
+        }
+
+        .glass-container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .data-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 6px;
+            color: #333;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .data-btn:hover {
+            background: rgba(180, 190, 220, 0.3);
+        }
+
+        .data-btn.active {
+            background: rgba(100, 120, 180, 0.4);
+            color: #fff;
+            border-color: rgba(100, 120, 180, 0.5);
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+        }
+
         table {
             width: 100%;
-            font-family: 'Times New Roman', serif;
+            min-width: 800px;
             font-weight: bold;
             border-spacing: 0;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
         th,
         td {
-            border-right: 2px solid #999;
-            border-bottom: 2px solid #999;
-            padding: 12px;
+            border-right: 1px solid rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 10px 8px;
             text-align: center;
-            font-size: 16px;
+            font-size: 15px;
+            color: #222;
+            white-space: nowrap;
         }
 
         th {
-            background-color: #333;
-            color: white;
             text-transform: uppercase;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 14px;
         }
 
         td:last-child {
@@ -37,355 +106,130 @@
         }
 
         tr:nth-child(even) {
-            background-color: #e9ecef;
+            background-color: rgba(0, 0, 0, 0.02);
         }
+
+        tr:hover {
+            background-color: rgba(180, 190, 220, 0.1);
+        }
+
         @media (max-width: 768px) {
+            .glass-container {
+                padding: 10px;
+            }
 
             th,
             td {
-                padding: 0px;
+                padding: 6px 4px;
+                font-size: 12px;
+            }
+
+            .data-btn {
+                padding: 6px 12px;
+                font-size: 13px;
             }
         }
     </style>
 </head>
 
 <body>
-    <table id="dataTable"></table>
-
-    <!-- 引入数据文件 -->
-    <!-- <script src="./data.js"></script> -->
+    <div class="glass-container">
+        <div class="btn-group">
+            <button class="data-btn active" data-num="10">近10期</button>
+            <button class="data-btn" data-num="20">近20期</button>
+            <button class="data-btn" data-num="50">近50期</button>
+            <button class="data-btn" data-num="all">全部数据</button>
+        </div>
+        <div class="table-wrapper">
+            <table id="dataTable"></table>
+        </div>
+    </div>
 
     <script src="../predText/predHitDate.js"></script>
-
-
     <script src="./js.js"></script>
 
     <script>
+        const originalData = [...processed];
         
-        // 创建表格
-        function createTable(data) {
+        function getLastNData(count) {
+            if (count === 'all') return [...originalData];
+
+            return originalData.slice(-count);
+        }
+
+        function renderTable(data) {
             const table = document.getElementById('dataTable');
+            table.innerHTML = '';
 
             const headers = ["期数", "特号", "生肖",
-                "男", "女",
-                "家", "野",
-                "菜", "草", "肉",
-                "天", "地", "人",
-                "福", "禄", "寿",
-                "日", "月", "星",
-                "魏", "蜀", "吴",
-                "琴", "棋", "书", "画",
-                "春", "夏", "秋", "冬",
-                "东", "西", "南", "北",
+                "男", "女", "家", "野",
+                "菜", "草", "肉", "天", "地", "人",
+                "福", "禄", "寿", "日", "月", "星",
+                "魏", "蜀", "吴", "琴", "棋", "书", "画",
+                "春", "夏", "秋", "冬", "东", "西", "南", "北",
                 "梅", "兰", "菊", "竹"];
 
             const headerRow = document.createElement('tr');
-            headerRow.style = "position: sticky;top: 0;background: white;z-index: 10;";
-
             headers.forEach(header => {
                 const th = document.createElement('th');
                 th.textContent = header;
-                th.style.position = 'sticky';
-                th.style.top = '0';
                 headerRow.appendChild(th);
 
-                const thHeader = th.textContent;
+                const softColors = {
+                    "男女": "linear-gradient(to top, #b3cde0, #9ab3d0)",
+                    "家野": "linear-gradient(to top, #c8e6c9, #a5d6a7)",
+                    "菜草肉": "linear-gradient(to top, #fff9c4, #f0e6b0)",
+                    "天地人": "linear-gradient(to top, #f8c8dc, #e8b8d0)",
+                    "福禄寿": "linear-gradient(to top, #ffccbc, #f5b0a0)",
+                    "日月星": "linear-gradient(to top, #b0bec5, #90a4ae)",
+                    "魏蜀吴": "linear-gradient(to top, #c8e6c9, #a5d6a7)",
+                    "琴棋书画": "linear-gradient(to top, #fff9c4, #f0e6b0)",
+                    "春夏秋冬": "linear-gradient(to top, #b2ebf2, #80deea)",
+                    "东西南北": "linear-gradient(to top, #b3cde0, #9ab3d0)",
+                    "梅兰菊竹": "linear-gradient(to top, #f8c8dc, #e8b8d0)"
+                };
 
-                if (thHeader === "男" || thHeader === "女" ||
-                    thHeader === "家" || thHeader === "野" ||
-                    thHeader === "菜" || thHeader === "草" || thHeader === "肉" ||
-                    thHeader === "天" || thHeader === "地" || thHeader === "人" ||
-                    thHeader === "福" || thHeader === "禄" || thHeader === "寿" ||
-                    thHeader === "日" || thHeader === "月" || thHeader === "星" ||
-                    thHeader === "魏" || thHeader === "蜀" || thHeader === "吴" ||
-                    thHeader === "琴" || thHeader === "棋" || thHeader === "书" || thHeader === "画" ||
-                    thHeader === "春" || thHeader === "夏" || thHeader === "秋" || thHeader === "冬" ||
-                    thHeader === "东" || thHeader === "西" || thHeader === "南" || thHeader === "北" ||
-                    thHeader === "梅" || thHeader === "兰" || thHeader === "菊" || thHeader === "竹"
-                ) {
-
-                    //将数据添加后，再根据数据判断颜    
-
-                    switch (thHeader) {
-                        case "男":
-                            th.style.background = "linear-gradient(to top, rgb(47 172 181), rgb(91, 134, 229))";
-                            break;
-                        case "女":
-                            th.style.background = "linear-gradient(to top, rgb(47 172 181), rgb(91, 134, 229))";
-                            break;
-
-                        case "家":
-                            th.style.background = "linear-gradient(to top, rgb(111 169 79), rgb(61 131 109))";
-                            break;
-                        case "野":
-                            th.style.background = "linear-gradient(to top, rgb(111 169 79), rgb(61 131 109))";
-                            break
-
-                        case "菜":
-                            th.style.background = "linear-gradient(to top, rgb(109 139 88), rgb(222, 203, 164))";
-                            break;
-                        case "草":
-                            th.style.background = "linear-gradient(to top, rgb(109 139 88), rgb(222, 203, 164))";
-                            break;
-                        case "肉":
-                            th.style.background = "linear-gradient(to top, rgb(109 139 88), rgb(222, 203, 164))";
-                            break
-
-                        case "天":
-                            th.style.background = "linear-gradient(to top, rgb(213 124 126), rgb(137 203 215))";
-                            break;
-                        case "地":
-                            th.style.background = "linear-gradient(to top, rgb(213 124 126), rgb(137 203 215))";
-                            break;
-                        case "人":
-                            th.style.background = "linear-gradient(to top, rgb(213 124 126), rgb(137 203 215))";
-                            break
-
-                        case "福":
-                            th.style.background = "linear-gradient(to top, rgb(231 139 93), rgb(233 5 12))";
-                            break;
-                        case "禄":
-                            th.style.background = "linear-gradient(to top, rgb(231 139 93), rgb(233 5 12))";
-                            break;
-                        case "寿":
-                            th.style.background = "linear-gradient(to top, rgb(231 139 93), rgb(233 5 12))";
-                            break;
-
-                        case "日":
-                            th.style.background = "linear-gradient(to top, rgb(151 64 54), rgb(31, 28, 24))";
-                            break;
-                        case "月":
-                            th.style.background = "linear-gradient(to top, rgb(151 64 54), rgb(31, 28, 24))";
-                            break;
-                        case "星":
-                            th.style.background = "linear-gradient(to top, rgb(151 64 54), rgb(31, 28, 24))";
-                            break
-
-                        case "魏":
-                            th.style.background = "linear-gradient(to top, rgb(111 169 79), rgb(61 131 109))";
-                            break;
-                        case "蜀":
-                            th.style.background = "linear-gradient(to top, rgb(111 169 79), rgb(61 131 109))";
-                            break;
-                        case "吴":
-                            th.style.background = "linear-gradient(to top, rgb(111 169 79), rgb(61 131 109))";
-                            break
-
-                        case "琴":
-                            th.style.background = "linear-gradient(to top, rgb(109 139 88), rgb(222, 203, 164))";
-                            break;
-                        case "棋":
-                            th.style.background = "linear-gradient(to top, rgb(109 139 88), rgb(222, 203, 164))";
-                            break;
-                        case "书":
-                            th.style.background = "linear-gradient(to top, rgb(109 139 88), rgb(222, 203, 164))";
-                            break;
-                        case "画":
-                            th.style.background = "linear-gradient(to top, rgb(109 139 88), rgb(222, 203, 164))";
-                            break;
-
-                        case "春":
-                            th.style.background = "linear-gradient(to top, rgb(21, 153, 87), rgb(21, 87, 153))";
-                            break;
-                        case "夏":
-                            th.style.background = "linear-gradient(to top, rgb(21, 153, 87), rgb(21, 87, 153))";
-                            break;
-                        case "秋":
-                            th.style.background = "linear-gradient(to top, rgb(21, 153, 87), rgb(21, 87, 153))";
-                            break;
-                        case "冬":
-                            th.style.background = "linear-gradient(to top, rgb(21, 153, 87), rgb(21, 87, 153))";
-                            break
-
-                        case "东":
-                            th.style.background = "linear-gradient(to top, rgb(47 172 181), rgb(91, 134, 229))";
-                            break;
-                        case "西":
-                            th.style.background = "linear-gradient(to top, rgb(47 172 181), rgb(91, 134, 229))";
-                            break;
-                        case "南":
-                            th.style.background = "linear-gradient(to top, rgb(47 172 181), rgb(91, 134, 229))";
-                            break;
-                        case "北":
-                            th.style.background = "linear-gradient(to top, rgb(47 172 181), rgb(91, 134, 229))";
-                            break;
-
-                        case "梅":
-                            th.style.background = "linear-gradient(to top, rgb(0 216 253), rgb(213 124 126))";
-                            break;
-                        case "兰":
-                            th.style.background = "linear-gradient(to top, rgb(0 216 253), rgb(213 124 126))";
-                            break;
-                        case "菊":
-                            th.style.background = "linear-gradient(to top, rgb(0 216 253), rgb(213 124 126))";
-                            break;
-                        case "竹":
-                            th.style.background = "linear-gradient(to top, rgb(0 216 253), rgb(213 124 126))";
-                            break
-                        default:
-                            break;
+                for (let group in softColors) {
+                    if (group.includes(header)) {
+                        th.style.background = softColors[group];
+                        break;
                     }
                 }
             });
-
             table.appendChild(headerRow);
 
-            data.reverse().forEach(item => {
+            data.forEach(item => {
                 const row = document.createElement('tr');
                 headers.forEach(header => {
                     const td = document.createElement('td');
+                    
                     if (header === "特号") {
                         const color = getAttributeColor(item[header]);
-                        // console.log(color);
-
-                        // console.log(item[header]);
-                        if (color) {
-                            td.innerHTML = `<span style="color: ${color}">${item[header]}</span>`;
-                        } else {
-                            td.textContent = item[header];
-                        }
+                        td.innerHTML = color ? `<span style="color: ${color}">${item[header]}</span>` : item[header];
                     }
-                    else if (header === "男" || header === "女" ||
-                            header === "家" || header === "野" ||
-                            header === "菜" || header === "草" || header === "肉" ||
-                            header === "天" || header === "地" || header === "人" ||
-                            header === "福" || header === "禄" || header === "寿" ||
-                            header === "日" || header === "月" || header === "星" ||
-                            header === "魏" || header === "蜀" || header === "吴" ||
-                            header === "琴" || header === "棋" || header === "书" || header === "画" ||
-                            header === "春" || header === "夏" || header === "秋" || header === "冬" ||
-                            header === "东" || header === "西" || header === "南" || header === "北" ||
-                            header === "梅" || header === "兰" || header === "菊" || header === "竹"
-                    ) {
-
-                        //将数据添加后，再根据数据判断颜色
-
-                        const nanColor = item[header];
-                        td.textContent = nanColor;
-
-                        switch (nanColor) {
-                            case "男":
-                                td.style.backgroundColor = "lightblue";
-                                break;
-                            case "女":
-                                td.style.backgroundColor = "lightblue";
-                                break;
-
-                            case "家":
-                                td.style.backgroundColor = "lightgreen";
-                                break;
-                            case "野":
-                                td.style.backgroundColor = "lightgreen";
-                                break;
-
-                            case "菜":
-                                td.style.backgroundColor = "lightyellow";
-                                break;
-                            case "草":
-                                td.style.backgroundColor = "lightyellow";
-                                break;
-                            case "肉":
-                                td.style.backgroundColor = "lightyellow";
-                                break;
-
-                            case "天":
-                                td.style.backgroundColor = "lightpink";
-                                break;
-                            case "地":
-                                td.style.backgroundColor = "lightpink";
-                                break;
-                            case "人":
-                                td.style.backgroundColor = "lightpink";
-                                break;
-
-                            case "福":
-                                td.style.backgroundColor = "lightcoral";
-                                break;
-                            case "禄":
-                                td.style.backgroundColor = "lightcoral";
-                                break;
-                            case "寿":
-                                td.style.backgroundColor = "lightcoral";
-                                break;
-
-                            case "日":
-                                td.style.backgroundColor = "#96514d";
-                                break;
-                            case "月":
-                                td.style.backgroundColor = "#96514d";
-                                break;
-                            case "星":
-                                td.style.backgroundColor = "#96514d";
-                                break;
-
-                            case "魏":
-                                td.style.backgroundColor = "#8FBC8F";
-                                break;
-                            case "蜀":
-                                td.style.backgroundColor = "#8FBC8F";
-                                break;
-                            case "吴":
-                                td.style.backgroundColor = "#8FBC8F";
-                                break;
-
-                            case "琴":
-                                td.style.backgroundColor = "lightgoldenrodyellow";
-                                break;
-                            case "棋":
-                                td.style.backgroundColor = "lightgoldenrodyellow";
-                                break;
-                            case "书":
-                                td.style.backgroundColor = "lightgoldenrodyellow";
-                                break;
-                            case "画":
-                                td.style.backgroundColor = "lightgoldenrodyellow";
-                                break;
-
-                            case "春":
-                                td.style.backgroundColor = "lightseagreen";
-                                break;
-                            case "夏":
-                                td.style.backgroundColor = "lightseagreen";
-                                break;
-                            case "秋":
-                                td.style.backgroundColor = "lightseagreen";
-                                break;
-                            case "冬":
-                                td.style.backgroundColor = "lightseagreen";
-                                break;
-
-                            case "东":
-                                td.style.backgroundColor = "lightsteelblue";
-                                break;
-                            case "西":
-                                td.style.backgroundColor = "lightsteelblue";
-                                break;
-                            case "南":
-                                td.style.backgroundColor = "lightsteelblue";
-                                break;
-                            case "北":
-                                td.style.backgroundColor = "lightsteelblue";
-                                break;
-
-                            case "梅":
-                                td.style.backgroundColor = "lightpink";
-                                break;
-                            case "兰":
-                                td.style.backgroundColor = "lightpink";
-                                break;
-                            case "菊":
-                                td.style.backgroundColor = "lightpink";
-                                break;
-                            case "竹":
-                                td.style.backgroundColor = "lightpink";
-                                break;
-
-                            default:
-                                break;
-                        }
-                    }
-
-                    else {
+                    else if (["男", "女", "家", "野", "菜", "草", "肉", "天", "地", "人",
+                        "福", "禄", "寿", "日", "月", "星", "魏", "蜀", "吴",
+                        "琴", "棋", "书", "画", "春", "夏", "秋", "冬",
+                        "东", "西", "南", "北", "梅", "兰", "菊", "竹"].includes(header)) {
+                        
+                        const value = item[header];
+                        td.textContent = value;
+                        
+                        const softBg = {
+                            "男": "#e0f7ff", "女": "#e0f7ff",
+                            "家": "#e8f5e9", "野": "#e8f5e9",
+                            "菜": "#fff8e1", "草": "#fff8e1", "肉": "#fff8e1",
+                            "天": "#fce4ec", "地": "#fce4ec", "人": "#fce4ec",
+                            "福": "#ffe0e0", "禄": "#ffe0e0", "寿": "#ffe0e0",
+                            "日": "#e0e0e0", "月": "#e0e0e0", "星": "#e0e0e0",
+                            "魏": "#e8f5e9", "蜀": "#e8f5e9", "吴": "#e8f5e9",
+                            "琴": "#fff8e1", "棋": "#fff8e1", "书": "#fff8e1", "画": "#fff8e1",
+                            "春": "#e0f7fa", "夏": "#e0f7fa", "秋": "#e0f7fa", "冬": "#e0f7fa",
+                            "东": "#e0f7ff", "西": "#e0f7ff", "南": "#e0f7ff", "北": "#e0f7ff",
+                            "梅": "#fce4ec", "兰": "#fce4ec", "菊": "#fce4ec", "竹": "#fce4ec"
+                        };
+                        if (softBg[value]) td.style.backgroundColor = softBg[value];
+                    } else {
                         td.textContent = item[header];
                     }
                     row.appendChild(td);
@@ -393,18 +237,21 @@
                 table.appendChild(row);
             });
         }
-    
-        
-    console.log('最后一组数据:', processed[processed.length - 1]);
-    
-    // 反转数据顺序
-    // createTable(processed.reverse());
 
-    createTable(processed);
+        const buttons = document.querySelectorAll('.data-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
 
+                const num = btn.dataset.num;
+                const showData = num === 'all' ? getLastNData('all') : getLastNData(Number(num));
+                renderTable(showData);
+            });
+        });
+
+        renderTable(getLastNData(10));
     </script>
-
 </body>
-
 
 </html>
