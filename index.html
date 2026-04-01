@@ -243,8 +243,36 @@
         .category-value { flex: 1; color: #4a5568; }
 
         @media (max-width: 768px) {
-            .button-group { flex-direction: column; }
-            .glass-button { flex: none; width: 100%; }
+            .button-group {
+                flex-direction: row; /* 横向排列 */
+                flex-wrap: wrap; /* 自动换行 */
+                gap: 10px; /* 按钮间距 */
+                padding: 20px; /* 左右留白不贴边 */
+            }
+            .glass-button {
+                flex: 1;
+                min-width: calc(50% - 10px);
+                height: 52px;
+                font-size: 15px;
+            }
+            .zodiac-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .zodiac-label {
+                margin-bottom: 8px;
+            }
+            .wave-color-section {
+                flex-direction: column;
+            }
+            .number-tag {
+                width: 36px;
+                height: 36px;
+                font-size: 13px;
+            }
+            .data-card {
+                padding: 16px;
+            }
             .zodiac-item { flex-direction: column; align-items: flex-start; }
             .zodiac-label { margin-bottom: 8px; }
             .wave-color-section { flex-direction: column; }
@@ -267,10 +295,10 @@
         </div>
 
         <div class="button-group">
+            <div class="glass-button btn-sx" onclick="window.open('./sx/sx.html', '_blank')">筛号助手</div>
             <div class="glass-button btn-td" onclick="window.open('./td/tableDetails.html', '_blank')">生肖赋值</div>
             <div class="glass-button btn-rt" onclick="window.open('./rt/RangeSort.html', '_blank')">范围排序</div>
             <div class="glass-button btn-pt" onclick="window.open('./predText/predT.html', '_blank')">平码回顾</div>
-            <div class="glass-button btn-sx" onclick="window.open('./sx/sx.html', '_blank')">筛号助手</div>
             <div class="glass-button btn-zc" onclick="window.open('./zc/zc.html', '_blank')">生肖表格</div>
 
         </div>
