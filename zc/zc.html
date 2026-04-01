@@ -32,6 +32,34 @@
             margin: 0 auto;
         }
 
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .filter-btn.active {
+            background: #2196F3;
+        }
+
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -165,6 +193,13 @@
 
 <body>
     <div class="glass">
+        <div class="btn-group">
+            <button class="filter-btn active" onclick="filterData(10)">近10期</button>
+            <button class="filter-btn" onclick="filterData(50)">近50期</button>
+            <button class="filter-btn" onclick="filterData(100)">近100期</button>
+            <button class="filter-btn" onclick="filterData('all')">全部数据</button>
+        </div>
+        
         <div class="table-container">
             <table class="table">
                 <thead>
@@ -181,7 +216,6 @@
     <script src="../predText/predHitDate.js"></script>
 
     <script>
-
         const ZODIAC = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
         const colorMap = {
             '红': [1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46],
@@ -191,17 +225,16 @@
         const colorClass = { 红: 'tag-red', 蓝: 'tag-blue', 绿: 'tag-green' };
 
         let countMap = {};
-        ZODIAC.forEach(z => countMap[z] = 0);
+        let fullData = [];
         let dataList = [];
-        let lastActiveIndex = -1; // 记录当前展开行
+        let lastActiveIndex = -1;
 
-        // 1. 解析数据
         function parseData() {
             const lines = rawData.split('\n').map(i => i.trim()).filter(Boolean);
             const result = [];
             let index = 0;
             while (index < lines.length) {
-                index++; // 跳过日期
+                index++;
                 const period = lines[index++];
                 const flats = [];
                 for (let i = 0; i < 6; i++) {
@@ -214,10 +247,9 @@
                 const specialZodiac = lines[index++].split('/')[0];
                 result.push({ period, flats, special: { num: specialNum, zodiac: specialZodiac } });
             }
-            return result;
+            return result.reverse();
         }
 
-        // 2. 获取颜色
         function getNumberColor(num) {
             const n = parseInt(num);
             for (const [color, arr] of Object.entries(colorMap)) {
@@ -226,7 +258,6 @@
             return '红';
         }
 
-        // 3. 全兼容复制
         function copyCompatible(text, tipId) {
             try {
                 const input = document.createElement('input');
@@ -244,20 +275,18 @@
             }
         }
 
-        // 4. 生肖排序
         function getSortedZodiac(item) {
             const current = [...new Set([...item.flats.map(i => i.zodiac), item.special.zodiac])];
             return ZODIAC.filter(z => current.includes(z)).join(',');
         }
 
-        // 5. 【性能核心】仅切换显示/隐藏，无DOM重建
         function toggleDetail(index) {
-            // 关闭上一个展开的行
             if (lastActiveIndex !== -1 && lastActiveIndex !== index) {
-                document.getElementById(`detail_${lastActiveIndex}`).style.display = 'none';
+                const prev = document.getElementById(`detail_${lastActiveIndex}`);
+                if(prev) prev.style.display = 'none';
             }
             const currentDetail = document.getElementById(`detail_${index}`);
-            // 切换当前行
+            if (!currentDetail) return;
             if (currentDetail.style.display === 'table-row') {
                 currentDetail.style.display = 'none';
                 lastActiveIndex = -1;
@@ -267,18 +296,18 @@
             }
         }
 
-        // 6. 【性能核心】初始化一次性渲染所有DOM，后续不重建
         function renderTable() {
             const tbody = document.getElementById('tbody');
-            dataList = parseData();
+            countMap = {};
+            ZODIAC.forEach(z => countMap[z] = 0);
+            lastActiveIndex = -1;
+            
             let html = '';
-
             dataList.forEach((item, index) => {
                 const flatZodiacs = item.flats.map(i => i.zodiac);
                 const specialZodiac = item.special.zodiac;
                 const zodiacText = getSortedZodiac(item);
 
-                // 生肖图
                 let zodiacHtml = '<div class="zodiac-box">';
                 ZODIAC.forEach(z => {
                     let cls = 'zodiac-item';
@@ -301,35 +330,45 @@
                 const color = getNumberColor(item.special.num);
                 const specialHtml = `<span class="${colorClass[color]}">${item.special.num} ${item.special.zodiac}</span>`;
 
-                // 主行
                 html += `
-            <tr onclick="toggleDetail(${index})">
-                <td>${item.period}</td>
-                <td>${zodiacHtml}</td>
-                <td>${specialHtml}</td>
-            </tr>
-        `;
-
-                // 详情行（预渲染，带唯一ID）
-                html += `
-            <tr id="detail_${index}" class="detail-row">
-                <td colspan="3">
-                    <div class="detail-content">
-                        <span>平码：${item.flats.map(i => `${i.num}(${i.zodiac})`).join(' ')}</span>
-                        <span>特号：${item.special.num}(${item.special.zodiac})</span>
-                        <button class="copy-btn" onclick="copyCompatible('${zodiacText}','tip_${index}')">复制</button>
-                        <span id="tip_${index}" class="copy-tip">复制成功！</span>
-                    </div>
-                </td>
-            </tr>
-        `;
+                <tr onclick="toggleDetail(${index})">
+                    <td>${item.period}</td>
+                    <td>${zodiacHtml}</td>
+                    <td>${specialHtml}</td>
+                </tr>
+                <tr id="detail_${index}" class="detail-row">
+                    <td colspan="3">
+                        <div class="detail-content">
+                            <span>平码：${item.flats.map(i => `${i.num}(${i.zodiac})`).join(' ')}</span>
+                            <span>特号：${item.special.num}(${item.special.zodiac})</span>
+                            <button class="copy-btn" onclick="copyCompatible('${zodiacText}','tip_${index}')">复制</button>
+                            <span id="tip_${index}" class="copy-tip">复制成功！</span>
+                        </div>
+                    </td>
+                </tr>
+                `;
             });
-
             tbody.innerHTML = html;
         }
 
-        // 初始化渲染一次即可
-        renderTable();
+        // 核心修正：取数组最后N组
+        function filterData(count) {
+            if(typeof event !== 'undefined' && event) {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+            }
+            
+            if (count === 'all') {
+                dataList = [...fullData];
+            } else {
+                // slice(-N) = 截取最后N条
+                dataList = fullData.slice(-count);
+            }
+            renderTable();
+        }
+
+        fullData = parseData();
+        filterData(10); // 绝对生效
     </script>
 </body>
 
