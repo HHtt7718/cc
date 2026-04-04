@@ -135,9 +135,9 @@
 <body>
     <div class="glass-container">
         <div class="btn-group">
-            <button class="data-btn active" data-num="10">近10期</button>
-            <button class="data-btn" data-num="20">近20期</button>
+            <button class="data-btn active" data-num="20">近20期</button>
             <button class="data-btn" data-num="50">近50期</button>
+            <button class="data-btn" data-num="100">近100期</button>
             <button class="data-btn" data-num="all">全部数据</button>
         </div>
         <div class="table-wrapper">
@@ -250,7 +250,7 @@
             });
         });
 
-        renderTable(getLastNData(10));
+        renderTable(getLastNData(20));
     </script>
 </body>
 
