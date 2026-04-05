@@ -12,6 +12,7 @@
             box-sizing: border-box;
         }
 
+        /* 柔和页面背景 */
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, #bb6868 0%, #001c4a 100%);
@@ -19,6 +20,7 @@
             font-family: 'Times New Roman', serif;
         }
 
+        /* 低饱和度毛玻璃容器 */
         .glass-container {
             width: 100%;
             max-width: 1400px;
@@ -33,20 +35,38 @@
         }
 
         .btn-group {
+            position: sticky;
+            top: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            z-index: 1000;
             display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
         }
 
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        /* 柔和毛玻璃按钮 */
         .data-btn {
             padding: 8px 16px;
             border: 1px solid rgba(0, 0, 0, 0.1);
-            background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             border-radius: 6px;
-            color: #333;
             font-size: 15px;
             font-weight: bold;
             cursor: pointer;
@@ -58,17 +78,19 @@
         }
 
         .data-btn.active {
-            background: rgba(100, 120, 180, 0.4);
+            background: linear-gradient(45deg, #ab6ab3, #b99333);
             color: #fff;
             border-color: rgba(100, 120, 180, 0.5);
         }
 
+        /* 🔥 解决表格溢出：横向滚动容器 */
         .table-wrapper {
             width: 100%;
             overflow-x: auto;
             border-radius: 8px;
         }
 
+        /* 表格基础样式 */
         table {
             width: 100%;
             min-width: 800px;
@@ -113,6 +135,7 @@
             background-color: rgba(180, 190, 220, 0.1);
         }
 
+        /* 移动端极致适配 */
         @media (max-width: 768px) {
             .glass-container {
                 padding: 10px;
@@ -140,6 +163,7 @@
             <button class="data-btn" data-num="100">近100期</button>
             <button class="data-btn" data-num="all">全部数据</button>
         </div>
+        <!-- 滚动容器包裹表格，解决溢出 -->
         <div class="table-wrapper">
             <table id="dataTable"></table>
         </div>
@@ -149,14 +173,19 @@
     <script src="./js.js"></script>
 
     <script>
+        // ===================== 核心修复：数据反转逻辑 =====================
+        // 1. 原始数据保持不变
         const originalData = [...processed];
         
+        // 2. 获取【最后N条数据 + 反转展示】（最新数据在最顶部）
         function getLastNData(count) {
+            // if (count === 'all') return [...originalData].reverse(); // 全部数据反转
             if (count === 'all') return [...originalData];
 
             return originalData.slice(-count);
         }
 
+        // 封装表格渲染
         function renderTable(data) {
             const table = document.getElementById('dataTable');
             table.innerHTML = '';
@@ -169,12 +198,14 @@
                 "春", "夏", "秋", "冬", "东", "西", "南", "北",
                 "梅", "兰", "菊", "竹"];
 
+            // 表头（柔和低饱和渐变）
             const headerRow = document.createElement('tr');
             headers.forEach(header => {
                 const th = document.createElement('th');
                 th.textContent = header;
                 headerRow.appendChild(th);
 
+                // 柔和表头颜色
                 const softColors = {
                     "男女": "linear-gradient(to top, #b3cde0, #9ab3d0)",
                     "家野": "linear-gradient(to top, #c8e6c9, #a5d6a7)",
@@ -198,6 +229,7 @@
             });
             table.appendChild(headerRow);
 
+            // 表格内容（柔和单元格颜色）
             data.forEach(item => {
                 const row = document.createElement('tr');
                 headers.forEach(header => {
@@ -215,6 +247,7 @@
                         const value = item[header];
                         td.textContent = value;
                         
+                        // 低饱和度柔和背景色
                         const softBg = {
                             "男": "#e0f7ff", "女": "#e0f7ff",
                             "家": "#e8f5e9", "野": "#e8f5e9",
@@ -238,6 +271,7 @@
             });
         }
 
+        // 按钮切换功能
         const buttons = document.querySelectorAll('.data-btn');
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -250,6 +284,7 @@
             });
         });
 
+        // 默认加载：最后10期数据（反转后展示）
         renderTable(getLastNData(20));
     </script>
 </body>
