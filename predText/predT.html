@@ -3,7 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>平码回顾</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平号回顾</title>
     <style>
         * {
             margin: 0;
@@ -11,136 +12,231 @@
             box-sizing: border-box;
         }
 
-        /* 低亮度深色背景（护眼） */
         body {
             font-family: "微软雅黑", Arial, sans-serif;
-            background: linear-gradient(135deg, #45617c 0%, #5b5b78 100%);
             min-height: 100vh;
+            background: linear-gradient(135deg, #384581 0%, #764ba2 100%);
+            background-attachment: fixed;
             padding: 20px;
+            overflow-x: hidden;
         }
 
-        /* 深色毛玻璃按钮 */
-        .glass-btn {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgb(0 0 0 / 15%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .period-btn {
+            padding: 10px 20px;
+            border: none;
             border-radius: 8px;
-            padding: 10px 24px;
-            font-size: 15px;
-            color: #ffffff;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(8px);
+            color: #fff;
+            font-size: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: 0.3s;
         }
 
-        .glass-btn:hover {
-            background: rgba(255, 255, 255, 0.18);
-            transform: translateY(-2px);
+        .period-btn.active {
+            background: rgba(255, 255, 255, 0.8);
+            color: #764ba2;
+            font-weight: bold;
         }
 
-        /* 深色毛玻璃表格 */
+        .period-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .prob-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .copy-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .copy-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            background: #4facfe;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #00a8ff;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 12px;
+        }
+
         table {
             border-collapse: collapse;
             width: 100%;
-            max-width: 1400px;
-            margin: 30px auto;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            color: #fff;
         }
 
         th,
         td {
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 12px 15px;
+            border: 1px solid rgb(16 16 16 / 20%);
+            padding: 12px;
             text-align: center;
-            color: #e0e0e0;
+            white-space: nowrap;
         }
 
-        /* 表头 */
         th {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgb(104 99 99 / 20%);
             position: sticky;
             top: 0;
             font-weight: bold;
-            color: #ffffff;
         }
 
         tr:nth-child(even) {
-            background: rgba(0, 0, 0, 0.1);
+            background: rgb(90 90 90 / 5%);
         }
 
-        /* 特码配色（红色，适配叉号） */
         .highlight {
-            background: linear-gradient(135deg, #6a5656, #685c5c) !important;
-            color: #fff !important;
+            background: rgba(255, 224, 130, 0.3);
             font-weight: bold;
-            border-radius: 10px;
+            color: #ffd700;
         }
 
-        /* 绿色对勾 */
         .correct {
-            color: #10b981 !important;
+            color: #00ff00;
             font-weight: bold;
-            font-size: 18px;
+            margin-left: 5px;
         }
 
-        /* 红色叉号 */
         .wrong {
-            color: #f87171 !important;
+            color: #ff4444;
             font-weight: bold;
-            font-size: 18px;
+            margin-left: 5px;
         }
 
-        h2 {
-            text-align: center;
-            color: #ffffff;
-            margin: 20px 0;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        .copy-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 200, 0, 0.8);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            display: none;
+            z-index: 999;
         }
 
-        .btn-box {
-            text-align: center;
-            margin: 20px 0;
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .prob-box {
+                font-size: 16px;
+            }
+
+            th,
+            td {
+                padding: 8px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <h2></h2>
-    <div class="btn-box">
-        <button id="copyBtn" class="glass-btn">复制最新一期往期号码</button>
+    <div class="copy-toast" id="copyToast">复制成功</div>
+
+    <div class="container">
+        <div class="btn-group">
+            <button class="period-btn active" data-count="5">近5期</button>
+            <button class="period-btn" data-count="20">近20期</button>
+            <button class="period-btn" data-count="50">近50期</button>
+            <button class="period-btn" data-count="all">全部数据</button>
+        </div>
+
+        <div class="prob-box">
+            <div>往期概率：<span id="pastRate">0%</span></div>
+            <div>1平10特概率: <span id="tenRate">0%</span></div>
+            <div>平尾概率：<span id="weiRate">0%</span></div>
+        </div>
+
+        <div class="copy-btns">
+            <button class="copy-btn" onclick="copyLatest()">复制最新</button>
+            <button class="copy-btn" onclick="copyShuffle()">复制乱序</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>期数</th>
+                        <th>特号</th>
+                        <th>往期号码</th>
+                        <th>往期命中</th>
+                        <th>1平10特</th>
+                        <th>1平10特命中</th>
+                        <th>2平尾加特尾</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th>日期</th>
-                <th>期数</th>
-                <th>平码</th>
-                <th>特码</th>
-                <th>平预测</th>
-                <th>平预测命中</th>
-                <th>往期号码</th>
-                <th>号码数量</th>
-                <th>往期命中</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
 
     <script src="./predHitDate.js"></script>
 
     <script>
-        //往期 期数
-        const currentIndexNum = 9;
+        const PERIOD_COUNT = 9;
+        const TOTAL_PERIOD = 10;
 
-        // 解析原始数据为结构化对象
+        const PINGWEI_LOOK_BACK = 1;
+        const PINGWEI_TOTAL = PINGWEI_LOOK_BACK +1;
+
+        let originalGroups = [];
+        let reversedGroups = [];
+        let processedData = [];
+        let showData = [];
+
         function parseData(raw) {
             const groups = [];
             const blocks = raw.trim().split(/\n\s*\n(?=\d{4}-\d{2}-\d{2}\s*\n\d+期)/);
@@ -161,156 +257,231 @@
             return groups;
         }
 
-        // 获取往期号码
-        function getPastNumbers(groups, currentIndex) {
-            if (currentIndex === groups.length - 1) return { numbers: '', count: 0 };
-            const endIndex = Math.min(groups.length - 1, currentIndex + currentIndexNum);
-            if (endIndex - currentIndex + 1 < currentIndexNum - 1) return { numbers: '', count: 0 };
-            const pastNumbers = [];
-            for (let i = currentIndex; i <= endIndex; i++) {
-                groups[i].pm.forEach(x => pastNumbers.push(x.num.padStart(2, '0')));
+        function getPingWei(index) {
+            const current = reversedGroups[index];
+            
+            if (index - PINGWEI_LOOK_BACK < 0 || !current) {
+                return { str: '', hit: '', missingStr: '' };
             }
-            const uniqueSortedNumbers = [...new Set(pastNumbers)]
-                .map(num => parseInt(num))
-                .sort((a, b) => a - b)
-                .map(num => num.toString().padStart(2, '0'));
-            const chunkedNumbers = [];
-            for (let i = 0; i < uniqueSortedNumbers.length; i += 10) {
-                chunkedNumbers.push(uniqueSortedNumbers.slice(i, i + 10).join(','));
+
+            const targetGroups = [];
+            for (let i = index - PINGWEI_LOOK_BACK; i <= index; i++) {
+                targetGroups.push(reversedGroups[i]);
             }
-            const formattedNumbers = chunkedNumbers.join(',' + '<br>');
+
+            const allNums = [];
+            targetGroups.forEach(g => {
+                allNums.push(...g.pm.map(x => x.num), g.tm.num);
+            });
+
+            const weiSet = new Set();
+            allNums.forEach(num => weiSet.add(num.toString().slice(-1)));
+            const sorted = Array.from(weiSet).sort((a, b) => a - b);
+
+            const lines = [];
+            for (let i = 0; i < sorted.length; i += 10) {
+                lines.push(sorted.slice(i, i + 10).join(','));
+            }
+            const str = lines.join('<br>');
+
+            const allWei = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            const missing = allWei.filter(w => !weiSet.has(w));
+            const missingStr = missing.length > 0 ? `<br>缺失：${missing.join(',')}` : '';
+
+            // 命中判断
+            let hit = '';
+            const next = reversedGroups[index + 1];
+            if (next) {
+                hit = sorted.includes(next.tm.num.toString().slice(-1))
+                    ? '<span class="correct">✅</span>'
+                    : '<span class="wrong">❌</span>';
+            }
+
+            return { str, hit, missingStr };
+        }
+
+        function getTenPeriodNumbers(currentIndex) {
+            if (currentIndex - PERIOD_COUNT < 0) return { numbers: "", rawList: [] };
+
+            const current = reversedGroups[currentIndex];
+            const pingCodes = current.pm.map(x => x.num.padStart(2, '0'));
+            const teCodes = [];
+
+            for (let i = currentIndex - PERIOD_COUNT; i <= currentIndex; i++) {
+                teCodes.push(reversedGroups[i].tm.num.padStart(2, '0'));
+            }
+
+            const unique = [...new Set([...pingCodes, ...teCodes])].map(Number).sort((a, b) => a - b).map(x => x.toString().padStart(2, '0'));
+            const lines = [];
+            for (let i = 0; i < unique.length; i += 5) lines.push(unique.slice(i, i + 5).join(','));
+            return { numbers: lines.join('<br>'), rawList: unique };
+        }
+
+        function getPastNumbers(currentIndex) {
+            if (currentIndex - PERIOD_COUNT < 0) return { numbers: '', raw: [] };
+
+            const past = [];
+            for (let i = currentIndex - PERIOD_COUNT; i <= currentIndex; i++) {
+                reversedGroups[i].pm.forEach(x => past.push(x.num.padStart(2, '0')));
+            }
+
+            const unique = [...new Set(past)].map(Number).sort((a, b) => a - b).map(x => x.toString().padStart(2, '0'));
+            const lines = [];
+            for (let i = 0; i < unique.length; i += 10) lines.push(unique.slice(i, i + 10).join(','));
+            return { numbers: lines.join(',<br>'), raw: unique };
+        }
+
+        function preprocessAllData() {
+            processedData = [];
+            reversedGroups.forEach((item, idx) => {
+                const past = getPastNumbers(idx);
+                const ten = getTenPeriodNumbers(idx);
+                const wei = getPingWei(idx);
+
+                let pastHit = '';
+                if (past.raw.length > 0 && reversedGroups[idx + 1]) {
+                    pastHit = past.raw.includes(reversedGroups[idx + 1].tm.num.padStart(2, '0'))
+                        ? '<span class="correct">✅</span>'
+                        : '<span class="wrong">❌</span>';
+                }
+
+                let tenHit = '';
+                if (ten.rawList.length > 0 && reversedGroups[idx + 1]) {
+                    tenHit = ten.rawList.includes(reversedGroups[idx + 1].tm.num.padStart(2, '0'))
+                        ? '<span class="correct">✅</span>'
+                        : '<span class="wrong">❌</span>';
+                }
+
+                processedData.push({ ...item, past, ten, wei, pastHit, tenHit });
+            });
+        }
+
+        function calcAllRate() {
+            let pHit = 0, pTotal = 0;
+            let tHit = 0, tTotal = 0;
+            let wHit = 0, wTotal = 0;
+
+            processedData.forEach(item => {
+                if (item.pastHit.includes('✅') || item.pastHit.includes('❌')) {
+                    pTotal++;
+                    if (item.pastHit.includes('✅')) pHit++;
+                }
+                if (item.tenHit.includes('✅') || item.tenHit.includes('❌')) {
+                    tTotal++;
+                    if (item.tenHit.includes('✅')) tHit++;
+                }
+                if (item.wei.hit.includes('✅') || item.wei.hit.includes('❌')) {
+                    wTotal++;
+                    if (item.wei.hit.includes('✅')) wHit++;
+                }
+            });
+
             return {
-                numbers: formattedNumbers,
-                count: uniqueSortedNumbers.length
+                past: pTotal ? (pHit / pTotal * 100).toFixed(2) + '%' : '0%',
+                ten: tTotal ? (tHit / tTotal * 100).toFixed(2) + '%' : '0%',
+                wei: wTotal ? (wHit / wTotal * 100).toFixed(2) + '%' : '0%'
             };
         }
 
-        // 判断往期号码是否命中
-        function checkPastHit(pastNumbers, prevGroup) {
-            if (!prevGroup || !pastNumbers) return '';
-            return pastNumbers.includes(prevGroup.tm.num.padStart(2, '0')) ?
-                `<span class="correct">✔</span>` : `<span class="wrong">✘</span>`;
-        }
+        function calcRate() {
+            let pHit = 0, pTotal = 0;
+            let tHit = 0, tTotal = 0;
+            let wHit = 0, wTotal = 0;
 
-        // 计算命中率
-        function calculateHitRate(groups, hitType) {
-            let hits = 0;
-            let total = 0;
-            for (let i = 0; i < groups.length; i++) {
-                if (hitType === 'pred') {
-                    const pred = predictNextTM(groups[i]);
-                    if (checkHit(pred, groups[i - 1]).includes('✔')) hits++;
-                } else if (hitType === 'past') {
-                    const pastNumbers = getPastNumbers(groups, i).numbers;
-                    if (pastNumbers && checkPastHit(pastNumbers.replace(/<br>/g, ','), groups[i - 1]).includes('✔')) hits++;
+            showData.forEach(item => {
+                if (item.pastHit.includes('✅') || item.pastHit.includes('❌')) {
+                    pTotal++;
+                    if (item.pastHit.includes('✅')) pHit++;
                 }
-                total++;
-            }
-            return total > 0 ? (hits / total * 100).toFixed(2) + '%' : '0%';
+                if (item.tenHit.includes('✅') || item.tenHit.includes('❌')) {
+                    tTotal++;
+                    if (item.tenHit.includes('✅')) tHit++;
+                }
+                if (item.wei.hit.includes('✅') || item.wei.hit.includes('❌')) {
+                    wTotal++;
+                    if (item.wei.hit.includes('✅')) wHit++;
+                }
+            });
+
+            const allRate = calcAllRate();
+            
+            document.getElementById('pastRate').innerText = `${pTotal ? (pHit / pTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.past}）`;
+            document.getElementById('tenRate').innerText = `${tTotal ? (tHit / tTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.ten}）`;
+            document.getElementById('weiRate').innerText = `${wTotal ? (wHit / wTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.wei}）`;
         }
 
-        function renderTable(groups) {
+        const toast = document.getElementById('copyToast');
+        function showToast() { toast.style.display = 'block'; setTimeout(() => toast.style.display = 'none', 1500); }
+        function copyText(t) { const el = document.createElement('textarea'); el.value = t; el.style.opacity = 0; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); }
+        function getLatestNums() { return showData.length ? showData[showData.length - 1].past.raw || [] : []; }
+
+        function copyLatest() {
+            const d = getLatestNums();
+            if (!d.length) return;
+            const lines = [];
+            for (let i = 0; i < d.length; i += 5) {
+                lines.push(d.slice(i, i + 5).join(','));
+            }
+            copyText(lines.join('\n'));
+            showToast();
+        }
+
+        function copyShuffle() {
+            const d = getLatestNums();
+            if (!d.length) return;
+            const shuffled = [...d].sort(() => Math.random() - 0.5);
+            const lines = [];
+            for (let i = 0; i < shuffled.length; i += 5) {
+                lines.push(shuffled.slice(i, i + 5).join(','));
+            }
+            copyText(lines.join(',\n'));
+            showToast();
+        }
+
+        function render() {
             const tbody = document.querySelector('#dataTable tbody');
             tbody.innerHTML = '';
-            for (let i = 0; i < groups.length; i++) {
-                const g = groups[i];
+            const frag = document.createDocumentFragment();
+            showData.forEach(item => {
                 const tr = document.createElement('tr');
-                tr.innerHTML += `<td>${g.date}</td>`;
-                tr.innerHTML += `<td>${g.period}</td>`;
-                tr.innerHTML += `<td>${g.pm.map(x => `${x.num.padStart(2, '0')}/${x.sx_wx}`).join('， ')}</td>`;
-                tr.innerHTML += `<td class="highlight">${g.tm.num.padStart(2, '0')}<br>${g.tm.sx_wx}</td>`;
-                const pred = predictNextTM(g);
-                tr.innerHTML += `<td>${pred}</td>`;
-                const hit = checkHit(pred, groups[i - 1]);
-                tr.innerHTML += `<td>${hit}</td>`;
-                const pastNumbersData = getPastNumbers(groups, i);
-                tr.innerHTML += `<td>${pastNumbersData.numbers}</td>`;
-                tr.innerHTML += `<td>${pastNumbersData.count}</td>`;
-                const pastHit = checkPastHit(pastNumbersData.numbers.replace(/<br>/g, ','), groups[i - 1]);
-                tr.innerHTML += `<td>${pastHit}</td>`;
-                tbody.appendChild(tr);
+                tr.innerHTML = `
+                <td>${item.period}</td>
+                <td class="highlight">${item.tm.num.padStart(2, '0')}<br>${item.tm.sx_wx}</td>
+                <td>${item.past.numbers}</td>
+                <td>${item.pastHit}</td>
+                <td>${item.ten.numbers}</td>
+                <td>${item.tenHit}</td>
+                <td>${item.wei.str}${item.wei.hit}${item.wei.missingStr}</td>
+            `;
+                frag.appendChild(tr);
+            });
+            tbody.appendChild(frag);
+            calcRate();
+        }
+
+        function switchPeriod(num) {
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-count="${num}"]`).classList.add('active');
+
+            if (num === 'all') {
+                showData = [...processedData];
+            } else {
+                const count = Number(num);
+                showData = processedData.slice(-count);
             }
-
-            const predHitRate = calculateHitRate(groups, 'pred');
-            const pastHitRate = calculateHitRate(groups, 'past');
-            const titleElement = document.querySelector('h2');
-            if (titleElement) {
-                titleElement.innerHTML = `平码回顾  倒序排序<br> <span style="font-size: 0.8em; color: #e0e0e0;">(平预测命中率: ${predHitRate}%) (往 ${currentIndexNum +1}期 命中率: ${pastHitRate}%)</span>`;
-            }
+            render();
         }
 
-        // 预测算法
-        function predictNextTM(group) {
-            const sxSet = new Set(group.pm.map(x => x.sx_wx.split('/')[0]));
-            return Array.from(sxSet).join('、');
-        }
+        window.onload = () => {
+            originalGroups = parseData(rawData);
+            reversedGroups = [...originalGroups].reverse();
+            preprocessAllData();
+            switchPeriod(5);
 
-        // 判断预测是否命中
-        function checkHit(pred, nextGroup) {
-            if (!nextGroup) return '';
-            const nextTM_SX = nextGroup.tm.sx_wx.split('/')[0];
-            return pred.includes(nextTM_SX) ?
-                `<span class="correct">✔</span>` : `<span class="wrong">✘</span>`;
-        }
-
-        // ===================== 终极修复：复制功能（兼容所有环境，无任何报错） =====================
-        function copyLatestPastNumbers() {
-            try {
-                // 获取最新一期数据
-                const firstRow = document.querySelector('#dataTable tbody tr:first-child');
-                if (!firstRow) {
-                    console.log('❌ 复制失败：暂无数据');
-                    alert('暂无数据可复制');
-                    return;
-                }
-
-                // 获取往期号码单元格
-                const tds = firstRow.querySelectorAll('td');
-                if (tds.length < 7) {
-                    console.log('❌ 复制失败：表格数据异常');
-                    return;
-                }
-                const pastNumberCell = tds[6];
-
-                // 格式化纯文本内容
-                let copyContent = pastNumberCell.textContent
-                    .replace(/\s+/g, ',')
-                    .replace(/,+/g, ',')
-                    .replace(/^,|,$/g, '');
-
-                if (!copyContent) {
-                    console.log('❌ 复制失败：号码为空');
-                    alert('本期暂无往期号码');
-                    return;
-                }
-
-                // 传统兼容复制法（本地/浏览器都能用，永不报错）
-                const textArea = document.createElement('textarea');
-                textArea.style.position = 'fixed';
-                textArea.style.left = '-9999px';
-                textArea.value = copyContent;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-
-                // 成功提示
-                // console.log('✅ 复制成功！最新一期往期号码：', copyContent);
-                // alert(`复制成功！\n号码：${copyContent}`);
-                alert(`复制成功`);
-
-
-            } catch (error) {
-                console.error('❌ 复制异常：', error);
-                alert('复制失败，请重试');
-            }
-        }
-
-        // 初始化
-        const groups = parseData(rawData);
-        renderTable(groups);
-        document.getElementById('copyBtn').addEventListener('click', copyLatestPastNumbers);
-
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchPeriod(btn.dataset.count));
+            });
+        };
     </script>
 </body>
 
