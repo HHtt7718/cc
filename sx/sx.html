@@ -161,6 +161,11 @@
                 <button class="glass-btn" data-group="group9" data-rule="small">小</button>
                 <button class="glass-btn" data-group="group10" data-rule="heSingle">合单</button>
                 <button class="glass-btn" data-group="group10" data-rule="heDouble">合双</button>
+                
+                <button class="glass-btn" data-group="group4" data-rule="jia" style="background: linear-gradient(to top, rgb(0 0 0), rgb(91, 134, 229));color: white;">家</button>
+                <button class="glass-btn" data-group="group4" data-rule="ye" style="background: linear-gradient(to top, rgb(47, 172, 181), rgb(0 0 0));color: white;">野</button>
+                <button class="glass-btn" data-group="group11" data-rule="nanXiao" style="background: linear-gradient(to top, rgb(203 0 5), rgb(0 194 229));color: white;">男</button>
+                <button class="glass-btn" data-group="group11" data-rule="nvXiao" style="background: linear-gradient(to top, rgb(143 8 11), rgb(242 164 255));color: white;">女</button>
             </div>
         </div>
 
@@ -183,17 +188,6 @@
                 <button class="glass-btn" data-group="group3" data-rule="red" style=" background-color: #e53e3e; color: white;">红</button>
                 <button class="glass-btn" data-group="group3" data-rule="blue" style=" background-color: #3182ce; color: white;">蓝</button>
                 <button class="glass-btn" data-group="group3" data-rule="green" style=" background-color: #38a169; color: white;">绿</button>
-            </div>
-        </div>
-
-        <!-- 家禽野兽 group4 ✅ 新增：男肖、女肖 -->
-        <div class="section">
-            <div class="section-label"></div>
-            <div class="btn-grid">
-                <button class="glass-btn" data-group="group4" data-rule="jia" style="background: linear-gradient(to top, rgb(0 0 0), rgb(91, 134, 229));color: white;">家</button>
-                <button class="glass-btn" data-group="group4" data-rule="ye" style="background: linear-gradient(to top, rgb(47, 172, 181), rgb(0 0 0));color: white;">野</button>
-                <button class="glass-btn" data-group="group11" data-rule="nanXiao" style="background: linear-gradient(to top, rgb(203 0 5), rgb(0 194 229));color: white;">男</button>
-                <button class="glass-btn" data-group="group11" data-rule="nvXiao" style="background: linear-gradient(to top, rgb(143 8 11), rgb(242 164 255));color: white;">女</button>
             </div>
         </div>
 
@@ -381,7 +375,7 @@ document.getElementById('btnCopy').addEventListener('click', () => {
     textarea.select();
     document.execCommand('copy');
     document.body.removeChild(textarea);
-    alert('复制成功！');
+    // alert('复制成功！');
 });
 
 // 核心筛选逻辑
