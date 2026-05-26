@@ -83,6 +83,14 @@
             text-align: center;
         }
 
+        /* 连对统计小字样式 */
+        .streak-desc {
+            font-size: 14px;
+            color: #ffd700;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+
         .copy-btns {
             display: flex;
             flex-wrap: wrap;
@@ -155,6 +163,12 @@
             color: #ff4444;
             font-weight: bold;
             margin-left: 5px;
+        }
+
+        /* 生肖标红样式 */
+        .sx-red {
+            color: #ff0000;
+            font-weight: bold;
         }
 
         .copy-toast {
@@ -248,7 +262,7 @@
         const TOTAL_PERIOD = 10;
 
         const PINGWEI_LOOK_BACK = 1;
-        const PINGWEI_TOTAL = PINGWEI_LOOK_BACK +1;
+        const PINGWEI_TOTAL = PINGWEI_LOOK_BACK + 1;
 
         let originalGroups = [];
         let reversedGroups = [];
@@ -277,7 +291,7 @@
 
         function getPingWei(index) {
             const current = reversedGroups[index];
-            
+
             if (index - PINGWEI_LOOK_BACK < 0 || !current) {
                 return { str: '', hit: '', missingStr: '' };
             }
@@ -349,12 +363,30 @@
             return { numbers: lines.join(',<br>'), raw: unique };
         }
 
+        // 通用函数：计算任意字段的历史最多连续✅次数
+        function calcMaxStreakByField(field) {
+            let max = 0;
+            let current = 0;
+            
+            processedData.forEach(item => {
+                const hitStr = item[field];
+                if (hitStr && hitStr.includes('✅')) {
+                    current++;
+                    if (current > max) max = current;
+                } else if (hitStr && hitStr.includes('❌')) {
+                    current = 0;
+                }
+            });
+            
+            return max;
+        }
+
+        // 计算连对最大值
         function calcAllMaxStreaks() {
             return {
                 past: calcMaxStreakByField('pastHit'),
                 ten: calcMaxStreakByField('tenHit'),
                 wei: calcMaxStreakByField('weiHit'),
-                sx: calcMaxStreakByField('sxHit')
             };
         }
 
@@ -379,7 +411,7 @@
                         : '<span class="wrong">❌</span>';
                 }
 
-                processedData.push({ ...item, past, ten, wei, pastHit, tenHit });
+                processedData.push({ ...item, past, ten, wei, pastHit, tenHit, weiHit: wei.hit, });
             });
         }
 
@@ -401,12 +433,16 @@
                     wTotal++;
                     if (item.wei.hit.includes('✅')) wHit++;
                 }
+                if (item.sxHit.includes('✅') || item.sxHit.includes('❌')) {
+                    sxTotal++;
+                    if (item.sxHit.includes('✅')) sxHit++;
+                }
             });
 
             return {
                 past: pTotal ? (pHit / pTotal * 100).toFixed(2) + '%' : '0%',
                 ten: tTotal ? (tHit / tTotal * 100).toFixed(2) + '%' : '0%',
-                wei: wTotal ? (wHit / wTotal * 100).toFixed(2) + '%' : '0%'
+                wei: wTotal ? (wHit / wTotal * 100).toFixed(2) + '%' : '0%',
             };
         }
 
@@ -432,11 +468,12 @@
 
             const allRate = calcAllRate();
             const streaks = calcAllMaxStreaks();
-
+            
             document.getElementById('pastRate').innerText = `${pTotal ? (pHit / pTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.past}）`;
             document.getElementById('tenRate').innerText = `${tTotal ? (tHit / tTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.ten}）`;
             document.getElementById('weiRate').innerText = `${wTotal ? (wHit / wTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.wei}）`;
-
+            
+            // 显示连对记录
             document.getElementById('pastMaxStreak').innerText = `往期最多连✅：${streaks.past} 次`;
             document.getElementById('tenMaxStreak').innerText = `1平10特最多连✅：${streaks.ten} 次`;
             document.getElementById('weiMaxStreak').innerText = `平尾加特尾最多连✅：${streaks.wei} 次`;
