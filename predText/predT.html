@@ -201,9 +201,18 @@
         </div>
 
         <div class="prob-box">
-            <div>往期概率：<span id="pastRate">0%</span></div>
-            <div>1平10特概率: <span id="tenRate">0%</span></div>
-            <div>平尾概率：<span id="weiRate">0%</span></div>
+            <div>
+                往期概率：<span id="pastRate">0%</span>
+                <div class="streak-desc" id="pastMaxStreak">往期最多连✅：0 次</div>
+            </div>
+            <div>
+                1平10特概率: <span id="tenRate">0%</span>
+                <div class="streak-desc" id="tenMaxStreak">1平10特最多连✅：0 次</div>
+            </div>
+            <div>
+                平尾概率：<span id="weiRate">0%</span>
+                <div class="streak-desc" id="weiMaxStreak">平尾加特尾最多连✅：0 次</div>
+            </div>
         </div>
 
         <div class="copy-btns">
@@ -414,6 +423,10 @@
             document.getElementById('pastRate').innerText = `${pTotal ? (pHit / pTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.past}）`;
             document.getElementById('tenRate').innerText = `${tTotal ? (tHit / tTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.ten}）`;
             document.getElementById('weiRate').innerText = `${wTotal ? (wHit / wTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.wei}）`;
+
+            document.getElementById('pastMaxStreak').innerText = `往期最多连✅：${streaks.past} 次`;
+            document.getElementById('tenMaxStreak').innerText = `1平10特最多连✅：${streaks.ten} 次`;
+            document.getElementById('weiMaxStreak').innerText = `平尾加特尾最多连✅：${streaks.wei} 次`;
         }
 
         const toast = document.getElementById('copyToast');
