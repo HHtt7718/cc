@@ -349,6 +349,15 @@
             return { numbers: lines.join(',<br>'), raw: unique };
         }
 
+        function calcAllMaxStreaks() {
+            return {
+                past: calcMaxStreakByField('pastHit'),
+                ten: calcMaxStreakByField('tenHit'),
+                wei: calcMaxStreakByField('weiHit'),
+                sx: calcMaxStreakByField('sxHit')
+            };
+        }
+
         function preprocessAllData() {
             processedData = [];
             reversedGroups.forEach((item, idx) => {
@@ -422,7 +431,8 @@
             });
 
             const allRate = calcAllRate();
-            
+            const streaks = calcAllMaxStreaks();
+
             document.getElementById('pastRate').innerText = `${pTotal ? (pHit / pTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.past}）`;
             document.getElementById('tenRate').innerText = `${tTotal ? (tHit / tTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.ten}）`;
             document.getElementById('weiRate').innerText = `${wTotal ? (wHit / wTotal * 100).toFixed(2) + '%' : '0%'}（${allRate.wei}）`;
