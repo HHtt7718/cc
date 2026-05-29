@@ -315,7 +315,7 @@
         for (let i = 0; i < sorted.length; i += 10) {
             lines.push(sorted.slice(i, i + 10).join(','));
         }
-        const str = lines.join('<br>');
+        const str = lines.join(',<br>');
 
         const allWei = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         const missing = allWei.filter(w => !weiSet.has(w));
