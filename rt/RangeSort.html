@@ -16,17 +16,22 @@
         .table-container {
             width: 100%;
             overflow: hidden;
+            /* 隐藏缩放后超出的部分 */
             position: relative;
+            /* 配合transform-origin定位 */
             margin: auto;
+            /* 给容器最小高度，避免缩放后高度塌陷 */
             min-height: 1px;
         }
 
         table {
             border-collapse: collapse;
             width: 100%;
+            /* 表格默认占满容器 */
             margin: auto;
             background: #fff;
             box-shadow: 0 2px 8px #ccc;
+            /* 保留原有样式，缩放会作用于整个表格 */
         }
 
         th,
@@ -84,11 +89,16 @@
             border-right: 2px solid #aaa;
         }
 
+        /* 移动端整体缩放核心逻辑 */
         @media (max-width: 768px) {
             .table-container {
+                /* 缩放比例：0.8=缩小到80%，可根据需求调整（0.7-0.9为宜） */
                 transform: scale(0.8);
+                /* 缩放原点：从左上角开始缩放，避免表格偏移 */
                 transform-origin: left top;
+                /* 补偿缩放后的宽度：scale(0.8)后实际宽度是80%，这里设125%让容器占满屏幕 */
                 width: 125%;
+                /* 消除缩放后容器的横向滚动 */
                 overflow-x: hidden;
             }
 
@@ -103,6 +113,7 @@
             .table-container {
                 transform: scale(0.7);
                 width: 143%;
+                /* 1/0.7≈143%，补偿宽度占满屏幕 */
             }
             th,
             td {
@@ -123,8 +134,6 @@
 
 
     <script>
-
-        const dataTable = processed;
 
         const zodiacData = {
             "鼠": "06,18,30,42",
@@ -155,6 +164,10 @@
             "狗": "09,21,33,45",
             "猪": "08,20,32,44"
         };
+
+        const dataTable = processed;
+
+        const baiNum = 35;
 
         // 根据日期选择使用的生肖映射：小于 20260217 使用 zodiacData，>= 20260217 使用 zodiacSixData
         function getZodiacMapByDate(dateStr) {
@@ -249,7 +262,7 @@
             }
 
             // 新增：计算百列、两百范围、五百范围
-            function getTopNumbers(arr, count = 28) {
+            function getTopNumbers(arr, count = baiNum) {
                 const freq = {};
                 arr.forEach(num => {
                     freq[num] = (freq[num] || 0) + 1;
@@ -267,14 +280,18 @@
                     const n = dataArr[i]["特号"];
                     if (n) nums.push(n.padStart(2, "0"));
                 }
-                return getTopNumbers(nums, 28);
+                return getTopNumbers(nums, baiNum);
             }
 
             // 五百范围
             // 02,03,04,10,11,14,15,16,18,20,21,23,24,25,27,30,33,38,39,40,41,43,44,45,46,47,49
+            // const fiveHundredRange = [
+            //     "02", "03", "04", "10", "11", "14", "15", "16", "18", "20", "21", "23", "24", "25", "27",
+            //     "30", "33", "38", "39", "40", "41", "43", "44", "45", "46", "47", "49"
+            // ];
+
             const fiveHundredRange = [
-                "02", "03", "04", "10", "11", "14", "15", "16", "18", "20", "21", "23", "24", "25", "27",
-                "30", "33", "38", "39", "40", "41", "43", "44", "45", "46", "47", "49"
+                "01","02","03","10","11","12","20","21","29","30","38","39","47","48","49"
             ];
 
             // 预计算所有期的百列、两百范围
@@ -290,14 +307,12 @@
                 const baiSorted = last.bai.slice().sort((a, b) => Number(a) - Number(b));
                 const liangbaiSorted = last.liangbai.slice().sort((a, b) => Number(a) - Number(b));
 
-                const baiLData =  baiSorted.join(",");
-                const liangbaiData =  liangbaiSorted.join(",");
+                const baiLData = baiSorted.join(",");
+                const liangbaiData = liangbaiSorted.join(",");
 
-                const fivebaiData =  fiveHundredRange;
 
                 console.log("百列范围:", baiLData);
                 console.log("两百范围:", liangbaiData);
-                console.log("五百范围:", fivebaiData);
             }
 
             const tableContainer = document.getElementById('zodiacCountTable');
@@ -401,7 +416,7 @@
 
                     // 百列
                     const baiRange = rangeData[i].bai;
-                    if (baiRange.length === 28) {
+                    if (baiRange.length === baiNum) {
                         if (baiRange.includes(nextTehao)) {
                             baiCell = '<span class="correct">✔</span>'; baiCount = 0;
                         } else {
@@ -412,7 +427,7 @@
                     }
                     // 两百
                     const liangbaiRange = rangeData[i].liangbai;
-                    if (liangbaiRange.length === 28) {
+                    if (liangbaiRange.length === baiNum) {
                         if (liangbaiRange.includes(nextTehao)) {
                             liangbaiCell = '<span class="correct">✔</span>'; liangbaiCount = 0;
                         } else {
@@ -468,7 +483,4 @@
     </script>
 </body>
 
-
 </html>
-
-
