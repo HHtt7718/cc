@@ -511,7 +511,7 @@
         for (let i = 0; i < d.length; i += 5) {
             lines.push(d.slice(i, i + 5).join(','));
         }
-        copyText(lines.join('\n'));
+        copyText(lines.join(',\n'));
         showToast();
     }
 
