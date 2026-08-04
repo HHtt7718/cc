@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <link rel="icon" sizes="any" href="./icon.png" type="image/png">
+    <link rel="mask-icon" href="./icon.png" color="#4285f4">
+    <link rel="apple-touch-icon" href="./icon.png">
+
+    <title>CC</title>
+    <style>
+        
+        html,
+        body {
+            overflow-x: hidden !important;
+            overflow-y: auto;
+            touch-action: pan-y;
+            overscroll-behavior-x: none;
+        }
+
+        body>* {
+            max-width: 100vw;
+        }
+
+        :root {
+            --color-red: #e53e3e;
+            --color-blue: #3182ce;
+            --color-green: #38a169;
+            --color-text: #2d3748;
+            --color-text-secondary: #718096;
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-blur: blur(20px);
+            --radius-lg: 20px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+            --shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            --color-jin: #f0c820;
+            --color-mu: #52c41a;
+            --color-shui: #1890ff;
+            --color-huo: #ff4d4f;
+            --color-tu: #8c6c3e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(120deg, #e0f7fa 0%, #f3e5f5 50%, #fff3e0 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow);
+        }
+
+        .glass-container {
+            width: 100%;
+            max-width: 1200px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* 内容容器 */
+        #contentWrapper {
+            width: 100%;
+            max-width: 1200px;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="./prD/newD.js"></script>
+    <script src="./prD/oldD.js"></script>
+    <script src="./prD/fagD.js"></script>
+    <script>
+        const newData = newD;
+        const oldData = oldD;
+        const fagData = fagD;
+    </script>
+
+
+    <!-- 导航模板、导航CSS、数据源逻辑统一加载 -->
+    <script src="./js/navTpl.js"></script>
+
+    <!-- 内容区域 -->
+    <div id="contentWrapper"></div>
+
+    <!-- 页面内容脚本 -->
+    <script src="./js/homeCt.js"></script>
+    <script src="./js/sxCt.js"></script>
+    <script src="./js/zcCt.js"></script>
+    <script src="./js/tdCt.js"></script>
+    <script src="./js/ptCt.js"></script>
+    <script src="./js/rtCt.js"></script>
+
+
+    <script>
+        //index js
+        // 新增：保存当前正在展示的页面key
+        let currentPageKey = 'home';
+
+        // 全局内容切换方法
+        function changePage(pageKey) {
+            currentPageKey = pageKey;
+            const wrapper = document.getElementById('contentWrapper');
+            wrapper.innerHTML = '';
+
+            // ==========新增：移除pt页面样式 和原有td/zc放在一起==========
+            const tdStyle = document.getElementById('td-page-style');
+            if(tdStyle) tdStyle.remove();
+            const zcStyle = document.getElementById('zc-page-style');
+            if (zcStyle) zcStyle.remove();
+            const ptStyle = document.getElementById('pt-page-style');
+            if (ptStyle) ptStyle.remove();
+            // 【新增】移除rt页面样式
+            const rtStyle = document.getElementById('rt-page-style');
+            if (rtStyle) rtStyle.remove();
+
+            // 先清除全部active
+            document.querySelectorAll('.glass-button, .sidebar-button').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            switch (pageKey) {
+                case 'home':
+                    wrapper.innerHTML = getHomeHtml();
+                    initHomeTouch();
+                    break;
+                case 'sx':
+                    wrapper.innerHTML = getSxHtml();
+                    initSxTouch();
+                    break;
+                case 'td':
+                    wrapper.innerHTML = getTdHtml();
+                    initTdTouch();
+                    break;
+                case 'rt':
+                    // 调用封装好的rt页面html
+                    wrapper.innerHTML = getRtHtml();
+                    // 执行rt页面初始化逻辑
+                    initRtTouch();
+                    break;
+                case 'pt':
+                    wrapper.innerHTML = getPtHtml();
+                    initPtTouch();
+                    break;
+                case 'zc':
+                    wrapper.innerHTML = getZcHtml();
+                    initZcTouch();
+                    break;
+                default:
+                    changePage('home');
+                    return;
+            }
+
+            setTimeout(() => {
+                document.querySelectorAll(`.btn-${pageKey}`).forEach(el => {
+                    el.classList.add('active');
+                });
+            }, 0);
+        }
+
+        // 默认加载首页
+        document.addEventListener('DOMContentLoaded', () => {
+            changePage('home');
+        });
+    </script>
+</body>
+
+</html>
