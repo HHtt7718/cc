@@ -108,6 +108,7 @@
     <script src="./js/tdCt.js"></script>
     <script src="./js/ptCt.js"></script>
     <script src="./js/rtCt.js"></script>
+    <script src="./js/lsCt.js"></script>
 
 
     <script>
@@ -131,6 +132,9 @@
             // 【新增】移除rt页面样式
             const rtStyle = document.getElementById('rt-page-style');
             if (rtStyle) rtStyle.remove();
+            // 【新增】移除ls历史记录页面样式
+            const lsStyle = document.getElementById('ls-page-style');
+            if (lsStyle) lsStyle.remove();
 
             // 先清除全部active
             document.querySelectorAll('.glass-button, .sidebar-button').forEach(el => {
@@ -163,6 +167,11 @@
                 case 'zc':
                     wrapper.innerHTML = getZcHtml();
                     initZcTouch();
+                    break;
+                // =========新增ls历史记录页面=========
+                case 'ls':
+                    wrapper.innerHTML = getLsHtml();
+                    initLsTouch();
                     break;
                 default:
                     changePage('home');
