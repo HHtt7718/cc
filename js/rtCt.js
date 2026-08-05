@@ -174,7 +174,7 @@ function initRtTouch() {
     margin: 0 auto;
     border-radius: 16px;
     overflow: hidden;
-    background: var(--glass-bg);
+    background: rgb(112 112 112 / 45%);
     backdrop-filter: blur(var(--blur-amount));
     -webkit-backdrop-filter: blur(var(--blur-amount));
     border: 1px solid var(--glass-border);
