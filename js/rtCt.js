@@ -1,6 +1,6 @@
-// ===================== RT页面 封装函数（直接粘贴到index.js底部）=====================
+
 /**
- * 返回 rt页面HTML模板
+ *  rt页面HTML模板
  */
 function getRtHtml() {
     return `
@@ -42,10 +42,10 @@ function getRtHtml() {
 }
 
 /**
- * rt页面初始化函数（业务逻辑全部放这里）
+ * rt页面初始化函数
  */
 function initRtTouch() {
-    // 动态创建隔离CSS，id=rt-page-style，切换页面自动销毁，不会污染全局
+    // 动态创建隔离CSS，id=rt-page-style
     const style = document.createElement('style');
     style.id = 'rt-page-style';
     style.textContent = `
@@ -491,7 +491,7 @@ function initRtTouch() {
     const doubleNumSet = new Set(["0", "2", "4", "6", "8"]);
     // 统计模板，复用对象，避免重复创建
     const STAT_ITEM_TPL = Object.freeze({ hit: 0, total: 0, maxConHit: 0, maxMiss: 0, curConHit: 0, curMiss: 0 });
-    // 表格目标列配置（统一管理列，新增列只改此处）
+    // 表格目标列配置（统一管理列）
     const TARGET_COLUMNS = ["前三", "上三", "中三", "后三", "百列", "两百", "五百"];
 
     // ====================== 全局状态（收拢分散全局变量） ======================
@@ -506,7 +506,7 @@ function initRtTouch() {
         colMissCounter: Object.fromEntries(TARGET_COLUMNS.map(col => [col, 0]))
     };
 
-    // ====================== 通用工具函数（纯函数，无副作用，抽离重复逻辑） ======================
+    // ====================== 通用工具函数 ======================
     /**
      * 复制文本到剪贴板，自动显示成功/失败提示
      * @param {string} text 复制内容
