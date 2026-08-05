@@ -1,6 +1,6 @@
 //navTpl.js
 
-// ===================== 1、导航栏全部CSS样式，统一存放 =====================
+// ===================== 导航栏全部CSS样式，统一存放 =====================
 const navStyle = `
 .header {
     background: rgba(255, 255, 255, 0.5);
@@ -133,7 +133,7 @@ const navStyle = `
 
     .header { padding:10px 10px;}
     body {
-        padding: 5px 5px 0px 45px;
+        padding: 5px 2px 0px 40px;
         width: 100vw;
         overflow-x: hidden !important;
     }
@@ -302,7 +302,7 @@ const navStyle = `
 let rawData = newData;
 let currentSourceKey = "new";
 
-// 切换数据源函数（内部逻辑完全不变，仅修改赋值语句）
+// 切换数据源函数
 function switchSource(key) {
     currentSourceKey = key;
     if (key === "new") rawData = newData;
@@ -324,7 +324,7 @@ function switchSource(key) {
         item.classList.remove('open');
     });
 
-    // ============【新增】数据源切换完成，重载当前页面 ============
+    // ============数据源切换完成，重载当前页面 ============
     if(typeof currentPageKey !== 'undefined'){
         changePage(currentPageKey);
     }
@@ -354,7 +354,6 @@ const navTpl = `
     <div class="sidebar-button btn-rt" onclick="changePage('rt')">范围排序</div>
     <div class="sidebar-button btn-pt" onclick="changePage('pt')">平码回顾</div>
     <div class="sidebar-button btn-zc" onclick="changePage('zc')">生肖表格</div>
-    <!-- 新增手机端历史记录 ls -->
     <div class="sidebar-button btn-ls" onclick="changePage('ls')">历史记录</div>
 
     <!-- 移动端侧边数据源 -->
@@ -381,7 +380,6 @@ const navTpl = `
         <div class="glass-button btn-rt" onclick="changePage('rt')">范围排序</div>
         <div class="glass-button btn-pt" onclick="changePage('pt')">平码回顾</div>
         <div class="glass-button btn-zc" onclick="changePage('zc')">生肖表格</div>
-        <!-- 新增电脑端历史记录 ls -->
         <div class="glass-button btn-ls" onclick="changePage('ls')">历史记录</div>
     </div>
 </div>
