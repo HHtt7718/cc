@@ -174,7 +174,7 @@ function initRtTouch() {
     margin: 0 auto;
     border-radius: 16px;
     overflow: hidden;
-    background: rgb(112 112 112 / 45%);
+    background: rgb(177 177 177 / 28%);
     backdrop-filter: blur(var(--blur-amount));
     -webkit-backdrop-filter: blur(var(--blur-amount));
     border: 1px solid var(--glass-border);
@@ -382,7 +382,6 @@ function initRtTouch() {
     `;
     document.head.appendChild(style);
 
-    // =====================【下方粘贴你原来整个页面script业务代码】=====================
     // ====================== 常量配置区（统一管理所有硬编码，便于修改） ======================
     const CONST_CONFIG = Object.freeze({
         DEFAULT_SHOW_LIMIT: 10,
@@ -502,7 +501,9 @@ function initRtTouch() {
         lastExpandTr: null,
         dataArray: [],
         processed: [],
-        rangeData: []
+        rangeData: [],
+        // TARGET_COLUMNS遗漏计数器
+        colMissCounter: Object.fromEntries(TARGET_COLUMNS.map(col => [col, 0]))
     };
 
     // ====================== 通用工具函数（纯函数，无副作用，抽离重复逻辑） ======================
@@ -589,16 +590,17 @@ function initRtTouch() {
     /**
      * 统计列渲染通用逻辑：命中✅，未命中返回遗漏值
      * @param {boolean} isHit 是否命中
-     * @param {Object} counter 列计数器
+     * @param {Object} counterObj 列计数器对象（引用）
+     * @param {string} key 字段key
      * @returns {string|number} 单元格展示值
      */
-    function getColumnCellValue(isHit, counter) {
+    function getColumnCellValue(isHit, counterObj, key) {
         if (isHit) {
-            counter = 0;
+            counterObj[key] = 0;
             return "✅";
         } else {
-            counter++;
-            return counter;
+            counterObj[key]++;
+            return counterObj[key];
         }
     }
 
@@ -624,6 +626,95 @@ function initRtTouch() {
             .sort((a, b) => b[1] - a[1] || Number(a[0]) - Number(b[0]))
             .slice(0, count)
             .map(([num]) => num);
+    }
+
+    /**
+     * 完整遍历全量数据，预计算【前三/上三/中三/后三/百列/两百/五百】每一行单元格值
+     * 每列独立判断有效性，互不干扰；某列无效仅该列空，本列计数器+1，其它列照常计算
+     * @param {Array} dataTable processed完整表格数据
+     * @param {Array} rangeData preCalcRangeData预计算的百列两百数据
+     * @returns {{resultArr:Object[], group4Data:Object[]}}
+     */
+    function preCalcTargetColumnCells(dataTable, rangeData) {
+        const missCounter = Object.fromEntries(TARGET_COLUMNS.map(col => [col, 0]));
+        const resultArr = [];
+
+        const group4Data = dataTable.map(data => {
+            const zodiacMap = getZodiacMapByDate(data["日期"]);
+            const { group4 } = getZodiacCount(data, zodiacMap);
+            const sortedZodiacs = Object.entries(group4)
+                .sort((a, b) => b[1] - a[1])
+                .map(([z]) => z);
+            return { data, sortedZodiacs };
+        });
+
+        for (let originIndex = 0; originIndex < group4Data.length; originIndex++) {
+            const rowItem = group4Data[originIndex];
+            const { data, sortedZodiacs } = rowItem;
+            const isLastRow = originIndex === group4Data.length - 1;
+            const cellVals = {};
+            TARGET_COLUMNS.forEach(c => cellVals[c] = "");
+
+            if (!isLastRow) {
+                const nextData = dataTable[originIndex + 1];
+                const nextZodiac = nextData["生肖"];
+                const nextTehao = nextData["特号"]?.padStart(2, "0") || "";
+                const zIdx = sortedZodiacs.indexOf(nextZodiac);
+                const isZodiacEmpty = !sortedZodiacs.length;
+
+                // ========== 每一列独立条件，不再统一isRowNoValid ==========
+                // 前三、上三、中三、后三 依赖：sortedZodiacs、nextZodiac
+                if (!isZodiacEmpty && nextZodiac) {
+                    cellVals["前三"] = getColumnCellValue(zIdx >= 0 && zIdx < 3, missCounter, "前三");
+                    cellVals["上三"] = getColumnCellValue(zIdx >= 3 && zIdx < 6, missCounter, "上三");
+                    cellVals["中三"] = getColumnCellValue(zIdx >= 6 && zIdx < 9, missCounter, "中三");
+                    cellVals["后三"] = getColumnCellValue(zIdx >= 9 && zIdx < 12, missCounter, "后三");
+                } else {
+                    // 生肖相关条件无效：仅这4个生肖列空，各自计数器+1；其它列不受影响
+                    missCounter["前三"] += 1;
+                    cellVals["前三"] = "";
+
+                    missCounter["上三"] += 1;
+                    cellVals["上三"] = "";
+
+                    missCounter["中三"] += 1;
+                    cellVals["中三"] = "";
+
+                    missCounter["后三"] += 1;
+                    cellVals["后三"] = "";
+                }
+
+                // 百列：依赖 bai数组、nextTehao
+                const baiArr = rangeData[originIndex].bai;
+                if (baiArr.length > 0 && nextTehao) {
+                    cellVals["百列"] = getColumnCellValue(baiArr.includes(nextTehao), missCounter, "百列");
+                } else {
+                    missCounter["百列"] += 1;
+                    cellVals["百列"] = "";
+                }
+
+                // 两百：依赖 liangbai数组、nextTehao
+                const liangbaiArr = rangeData[originIndex].liangbai;
+                if (liangbaiArr.length > 0 && nextTehao) {
+                    cellVals["两百"] = getColumnCellValue(liangbaiArr.includes(nextTehao), missCounter, "两百");
+                } else {
+                    missCounter["两百"] += 1;
+                    cellVals["两百"] = "";
+                }
+
+                // 五百：只依赖 nextTehao，不需要数组
+                if (nextTehao) {
+                    cellVals["五百"] = getColumnCellValue(fiveHundredRangeSet.has(nextTehao), missCounter, "五百");
+                } else {
+                    missCounter["五百"] += 1;
+                    cellVals["五百"] = "";
+                }
+            }
+            resultArr.push(cellVals);
+        }
+
+        AppState.colMissCounter = { ...missCounter };
+        return { resultArr, group4Data };
     }
 
     // ====================== 数据解析 & 预处理业务函数 ======================
@@ -842,8 +933,8 @@ function initRtTouch() {
                 最多连❌${data.maxMiss}期
             </div>`;
         }
-            html += `</div>`;
-            panel.innerHTML = html;
+        html += `</div>`;
+        panel.innerHTML = html;
     }
 
     /**
@@ -856,15 +947,8 @@ function initRtTouch() {
         if (!tableBody || !dataArray || dataArray.length < 2) return;
         tableBody.innerHTML = "";
 
-        // 预计算每行排序生肖
-        const group4Data = dataArray.map(data => {
-            const zodiacMap = getZodiacMapByDate(data["日期"]);
-            const { group4 } = getZodiacCount(data, zodiacMap);
-            const sortedZodiacs = Object.entries(group4)
-                .sort((a, b) => b[1] - a[1])
-                .map(([z]) => z);
-            return { data, sortedZodiacs };
-        });
+        // 全量预计算目标列单元格
+        const { resultArr: preCalcCells, group4Data } = preCalcTargetColumnCells(dataArray, rangeData);
 
         // 截取展示区间
         const showEndIdx = group4Data.length - 1;
@@ -875,9 +959,6 @@ function initRtTouch() {
         const globalStat = calcAllStat(group4Data, rangeData, dataArray);
         const currentRangeStat = calcAllStat(group4Data, rangeData, dataArray, showStartIdx, showEndIdx);
 
-        // 列遗漏计数器初始化
-        const columnCounters = Object.fromEntries(TARGET_COLUMNS.map(col => [col, 0]));
-
         // 批量生成行DOM，最后一次性插入（减少页面重绘）
         const fragment = document.createDocumentFragment();
 
@@ -886,48 +967,14 @@ function initRtTouch() {
             const originIndex = group4Data.indexOf(rowItem);
             const isLastRow = originIndex === group4Data.length - 1;
             let hitZodiac = "";
-            // 命中标记初始化
-            const hitFlags = Object.fromEntries(TARGET_COLUMNS.map(k => [k, false]));
 
-            // 非最后一行计算下一期命中状态
             if (!isLastRow) {
                 const nextData = dataArray[originIndex + 1];
-                const nextZodiac = nextData["生肖"];
-                const nextTehao = nextData["特号"]?.padStart(2, "0") || "";
-                hitZodiac = nextZodiac;
-                const zIdx = sortedZodiacs.indexOf(nextZodiac);
-                const isZodiacEmpty = !sortedZodiacs.length;
-
-                // 生肖分段命中
-                if (!isZodiacEmpty) {
-                    hitFlags["前三"] = zIdx >= 0 && zIdx < 3;
-                    hitFlags["上三"] = zIdx >= 3 && zIdx < 6;
-                    hitFlags["中三"] = zIdx >= 6 && zIdx < 9;
-                    hitFlags["后三"] = zIdx >= 9 && zIdx < 12;
-                }
-                // 号码范围命中
-                const { bai, liangbai } = rangeData[originIndex];
-                hitFlags["百列"] = bai.length > 0 && bai.includes(nextTehao);
-                hitFlags["两百"] = liangbai.length > 0 && liangbai.includes(nextTehao);
-                hitFlags["五百"] = fiveHundredRangeSet.has(nextTehao);
+                hitZodiac = nextData["生肖"];
             }
 
-            // 生成每列单元格值
-            const columnVals = {};
-            for (const col of TARGET_COLUMNS) {
-                // 空生肖/空号码列表展示空
-                if (["前三", "上三", "中三", "后三"].includes(col) && !sortedZodiacs.length) {
-                    columnVals[col] = "";
-                } else if (col === "百列" && !rangeData[originIndex].bai.length) {
-                    columnVals[col] = "";
-                } else if (col === "两百" && !rangeData[originIndex].liangbai.length) {
-                    columnVals[col] = "";
-                } else if (col === "五百" && !dataArray[originIndex + 1]?.["特号"]) {
-                    columnVals[col] = "";
-                } else {
-                    columnVals[col] = getColumnCellValue(hitFlags[col], columnCounters[col]);
-                }
-            }
+            // 使用预计算好的单元格值
+            const columnVals = preCalcCells[originIndex];
 
             // 格式化展示文本
             const zodiacHtml = formatZodiacList(sortedZodiacs, hitZodiac);
@@ -1020,50 +1067,52 @@ function initRtTouch() {
     }
 
     // ====================== 页面初始化 & 事件绑定 ======================
-    // ====================== 页面初始化 & 事件绑定 ======================
-        function initApp() {
-            // 1. 解析原始数据
-            const raw = AppState.rawData;
-            if (raw) {
-                const groups = parseData(raw).reverse();
-                AppState.dataArray = groups.map(g => {
-                    const tm = g.tm || {};
-                    const num = (tm.num || "").toString().padStart(2, '0');
-                    const sx_wx = tm.sx_wx || "";
-                    const zodiac = sx_wx.split('/')[0] || "";
-                    const date = (g.date || "").replace(/-/g, "");
-                    return { Zodiac: zodiac, attribute: num, period: g.period, date };
-                });
-            }
-
-            // 2. 数据预处理 & 预计算范围号码
-            AppState.processed = processData(AppState.dataArray);
-            AppState.rangeData = preCalcRangeData(AppState.processed);
-
-            // 3. 筛选按钮事件委托（代替循环绑定，性能更好）
-            document.addEventListener("click", (e) => {
-                const filterBtn = e.target.closest(CONST_CONFIG.DOM_SELECTORS.filterBtns);
-                if (!filterBtn) return;
-                document.querySelectorAll(CONST_CONFIG.DOM_SELECTORS.filterBtns).forEach(b => b.classList.remove("active"));
-                filterBtn.classList.add("active");
-                AppState.showLimit = Number(filterBtn.dataset.limit);
-                AppState.lastExpandTr = null;
-                renderHitTable(AppState.processed, AppState.rangeData);
+    function initApp() {
+        // 1. 解析原始数据
+        const raw = AppState.rawData;
+        if (raw) {
+            const groups = parseData(raw).reverse();
+            AppState.dataArray = groups.map(g => {
+                const tm = g.tm || {};
+                const num = (tm.num || "").toString().padStart(2, '0');
+                const sx_wx = tm.sx_wx || "";
+                const zodiac = sx_wx.split('/')[0] || "";
+                const date = (g.date || "").replace(/-/g, "");
+                return { Zodiac: zodiac, attribute: num, period: g.period, date };
             });
-
-            // 统计面板切换按钮
-            const statToggleBtn = document.querySelector(CONST_CONFIG.DOM_SELECTORS.statToggleBtn);
-            if (statToggleBtn) {
-                statToggleBtn.addEventListener("click", () => {
-                    const panel = document.querySelector(CONST_CONFIG.DOM_SELECTORS.statPanel);
-                    panel?.classList.toggle("open");
-                });
-            }
-
-            // 4. 首次渲染表格
-            renderHitTable(AppState.processed, AppState.rangeData);
         }
 
-        // 启动程序
-        initApp();
+        // 加载新数据重置TARGET_COLUMNS遗漏计数器
+        AppState.colMissCounter = Object.fromEntries(TARGET_COLUMNS.map(col => [col, 0]));
+
+        // 2. 数据预处理 & 预计算范围号码
+        AppState.processed = processData(AppState.dataArray);
+        AppState.rangeData = preCalcRangeData(AppState.processed);
+
+        // 3. 筛选按钮事件委托（代替循环绑定，性能更好）
+        document.addEventListener("click", (e) => {
+            const filterBtn = e.target.closest(CONST_CONFIG.DOM_SELECTORS.filterBtns);
+            if (!filterBtn) return;
+            document.querySelectorAll(CONST_CONFIG.DOM_SELECTORS.filterBtns).forEach(b => b.classList.remove("active"));
+            filterBtn.classList.add("active");
+            AppState.showLimit = Number(filterBtn.dataset.limit);
+            AppState.lastExpandTr = null;
+            renderHitTable(AppState.processed, AppState.rangeData);
+        });
+
+        // 统计面板切换按钮
+        const statToggleBtn = document.querySelector(CONST_CONFIG.DOM_SELECTORS.statToggleBtn);
+        if (statToggleBtn) {
+            statToggleBtn.addEventListener("click", () => {
+                const panel = document.querySelector(CONST_CONFIG.DOM_SELECTORS.statPanel);
+                panel?.classList.toggle("open");
+            });
+        }
+
+        // 4. 首次渲染表格
+        renderHitTable(AppState.processed, AppState.rangeData);
+    }
+
+    // 启动程序
+    initApp();
 }
