@@ -1,3 +1,5 @@
+//navTpl.js
+
 // ===================== 1、导航栏全部CSS样式，统一存放 =====================
 const navStyle = `
 .header {
@@ -69,6 +71,8 @@ const navStyle = `
 .btn-sx { color: #7d31ce;border-color: rgb(210 45 172 / 40%); }
 .btn-zc { color: #3c31ce;border-color: rgba(45, 84, 210, 0.4); }
 .btn-home { color: #2d3748; border-color: rgba(45, 55, 72, 0.4); }
+/* =========新增ls历史记录按钮样式========= */
+.btn-ls { color:#00897b; border-color:rgba(0,137,123,0.4); }
 
 /* ========== 手机端样式 ========== */
 @media (max-width: 768px) {
@@ -350,6 +354,8 @@ const navTpl = `
     <div class="sidebar-button btn-rt" onclick="changePage('rt')">范围排序</div>
     <div class="sidebar-button btn-pt" onclick="changePage('pt')">平码回顾</div>
     <div class="sidebar-button btn-zc" onclick="changePage('zc')">生肖表格</div>
+    <!-- 新增手机端历史记录 ls -->
+    <div class="sidebar-button btn-ls" onclick="changePage('ls')">历史记录</div>
 
     <!-- 移动端侧边数据源 -->
     <div class="source-toggle-wrap">
@@ -375,6 +381,8 @@ const navTpl = `
         <div class="glass-button btn-rt" onclick="changePage('rt')">范围排序</div>
         <div class="glass-button btn-pt" onclick="changePage('pt')">平码回顾</div>
         <div class="glass-button btn-zc" onclick="changePage('zc')">生肖表格</div>
+        <!-- 新增电脑端历史记录 ls -->
+        <div class="glass-button btn-ls" onclick="changePage('ls')">历史记录</div>
     </div>
 </div>
 
