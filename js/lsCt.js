@@ -233,8 +233,8 @@ function injectLsStyle() {
     }
     .ls-table-container th,
     .ls-table-container td {
-        padding: 5px 2px;
-        font-size: 12px;
+        padding: 5px 1px;
+        font-size: 11px;
     }
     .ls-split-plus {
         margin: 0 4px;
