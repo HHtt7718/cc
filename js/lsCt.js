@@ -165,7 +165,7 @@ function injectLsStyle() {
 }
 .ls-table-container th,
 .ls-table-container td {
-    padding: 5px 2px;
+    padding: 2px 1px;
     text-align: center;
     color: #fff;
     font-size: 14px;
