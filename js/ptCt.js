@@ -248,7 +248,6 @@ function initPtTouch() {
         style.textContent = styleText;
         document.head.appendChild(style);
     }
-
     // ====================== PT业务逻辑 ======================
     const PERIOD_COUNT = 9;
     const PINGWEI_LOOK_BACK = 1;
@@ -299,8 +298,8 @@ function initPtTouch() {
         const isMobile = window.innerWidth <= 768;
         const perLine = isMobile ? perLineMobile : perLinePc;
         const chunks = [];
-        for(let i=0;i<numArr.length;i+=perLine){
-            chunks.push(numArr.slice(i,i+perLine).join(',') + ',');
+        for (let i = 0; i < numArr.length; i += perLine) {
+            chunks.push(numArr.slice(i, i + perLine).join(',') + ',');
         }
         return chunks.join('<br>');
     }
@@ -308,7 +307,7 @@ function initPtTouch() {
     function getPingWei(index) {
         const current = reversedGroups[index];
         if (index - PINGWEI_LOOK_BACK < 0 || !current) {
-            return { str: '', hit: '', missingStr: '', includeList:[] };
+            return { str: '', hit: '', missingStr: '', includeList: [] };
         }
         const targetGroups = [];
         for (let i = index - PINGWEI_LOOK_BACK; i <= index; i++) {
@@ -331,7 +330,7 @@ function initPtTouch() {
                 ? '<span class="correct">✅</span>'
                 : '<span class="wrong">❌</span>';
         }
-        return { str: sorted.join(','), hit, missingStr, includeList:sorted };
+        return { str: sorted.join(','), hit, missingStr, includeList: sorted };
     }
 
     function getTenPeriodNumbers(currentIndex) {
@@ -404,17 +403,27 @@ function initPtTouch() {
             const ten = getTenPeriodNumbers(idx);
             const wei = getPingWei(idx);
             let pastHit = '';
+            let tenHit = '';
+
+            // 存在下一期：正常带✅/❌
             if (past.raw.length > 0 && reversedGroups[idx + 1]) {
                 const isHit = past.raw.includes(reversedGroups[idx + 1].tm.num.padStart(2, '0'));
                 pastHit = isHit ? `${past.raw.length}个<span class="correct">✅</span>` : `${past.raw.length}个<span class="wrong">❌</span>`;
+            } else if (past.raw.length > 0) {
+                // 最新一期（无下一期）：只输出号码个数，无对错标记
+                pastHit = `${past.raw.length}个`;
             }
-            let tenHit = '';
+
             if (ten.rawList.length > 0 && reversedGroups[idx + 1]) {
                 const isHit = ten.rawList.includes(reversedGroups[idx + 1].tm.num.padStart(2, '0'));
                 tenHit = isHit ? `${ten.rawList.length}个<span class="correct">✅</span>` : `${ten.rawList.length}个<span class="wrong">❌</span>`;
+            } else if (ten.rawList.length > 0) {
+                // 最新一期（无下一期）：只输出号码个数
+                tenHit = `${ten.rawList.length}个`;
             }
+
             processedData.push({
-                index:idx,
+                index: idx,
                 ...item,
                 past,
                 ten,
@@ -474,18 +483,18 @@ function initPtTouch() {
     }
 
     const toast = document.getElementById('copyToast');
-    function showToast(text, success=true) {
+    function showToast(text, success = true) {
         toast.innerText = text;
-        toast.className = 'copy-toast ' + (success?'toast-success':'toast-fail');
+        toast.className = 'copy-toast ' + (success ? 'toast-success' : 'toast-fail');
         toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 1800);
     }
 
     async function copyText(text) {
-        try{
+        try {
             await navigator.clipboard.writeText(text);
             return true;
-        }catch(err){
+        } catch (err) {
             const el = document.createElement('textarea');
             el.value = text;
             el.style.opacity = '0';
@@ -501,70 +510,100 @@ function initPtTouch() {
         const tbody = document.querySelector('#dataTable tbody');
         tbody.innerHTML = '';
         const frag = document.createDocumentFragment();
-        showData.forEach((item,loopIdx) => {
+        showData.forEach((item, loopIdx) => {
             const tr = document.createElement('tr');
-            tr.style.cursor='pointer';
-            tr.onclick = ()=>toggleDetail(loopIdx);
+            tr.style.cursor = 'pointer';
+            tr.onclick = () => toggleDetail(loopIdx);
             const periodTmText = `${item.period}<br><span class="highlight">${item.tm.num.padStart(2, '0')} ${item.tm.sx_wx}</span>`;
             tr.innerHTML = `
-                <td>${periodTmText}</td>
-                <td>${item.pastHit}</td>
-                <td>${item.tenHit}</td>
-                <td>${item.wei.hit} ${item.wei.missingStr}</td>
-            `;
+            <td>${periodTmText}</td>
+            <td>${item.pastHit}</td>
+            <td>${item.tenHit}</td>
+            <td>${item.wei.hit} ${item.wei.missingStr}</td>
+        `;
             frag.appendChild(tr);
             const detailTr = document.createElement('tr');
             detailTr.className = 'detail-row';
             detailTr.id = `detail_${loopIdx}`;
             detailTr.style.display = 'none';
-            const pastFormatted = formatNumberList(item.past.raw,10,10);
-            const tenFormatted = formatNumberList(item.ten.rawList,5,5);
+            const pastFormatted = formatNumberList(item.past.raw, 10, 10);
+            const tenFormatted = formatNumberList(item.ten.rawList, 5, 5);
             detailTr.innerHTML = `
-            <td colspan="4" class="detail-content">
-                <div class="detail-wrap">
-                    <div class="detail-block">
-                        <div class="detail-title">往期号码</div>
-                        <div>${pastFormatted}</div>
-                        <div style="margin-top:8px;">
-                            <button class="copy-btn" onclick="event.stopPropagation();copyCurrent(${loopIdx})">复制</button>
-                            <button class="copy-btn" onclick="event.stopPropagation();copyShuffleCurrent(${loopIdx})">乱序</button>
-                        </div>
-                    </div>
-                    <div class="detail-block">
-                        <div class="detail-title">1平10特</div>
-                        <div>${tenFormatted}</div>
+        <td colspan="4" class="detail-content">
+            <div class="detail-wrap">
+                <div class="detail-block">
+                    <div class="detail-title">往期号码</div>
+                    <div>${pastFormatted}</div>
+                    <div style="margin-top:8px;">
+                        <button class="copy-btn" onclick="event.stopPropagation();copyCurrent(${loopIdx})">复制</button>
+                        <button class="copy-btn" onclick="event.stopPropagation();copyShuffleCurrent(${loopIdx})">乱序</button>
                     </div>
                 </div>
-            </td>
-            `;
+                <div class="detail-block">
+                    <div class="detail-title">1平10特</div>
+                    <div>${tenFormatted}</div>
+                    <div style="margin-top:8px;">
+                        <button class="copy-btn" onclick="event.stopPropagation();copyTenCurrent(${loopIdx})">复制</button>
+                        <button class="copy-btn" onclick="event.stopPropagation();copyTenShuffleCurrent(${loopIdx})">乱序</button>
+                    </div>
+                </div>
+            </div>
+        </td>
+        `;
             frag.appendChild(detailTr);
         });
         tbody.appendChild(frag);
         calcRate();
     }
 
-    window.copyCurrent = async function(idx){
+    // 往期号码复制
+    window.copyCurrent = async function (idx) {
         const row = showData[idx];
-        if(!row || !row.past.raw.length){
-            showToast('复制失败',false);
+        if (!row || !row.past.raw.length) {
+            showToast('复制失败', false);
             return;
         }
-        const formatted = formatNumberList(row.past.raw,10,5).replaceAll('<br>','\n');
+        const formatted = formatNumberList(row.past.raw, 10, 5).replaceAll('<br>', '\n');
         const res = await copyText(formatted);
-        if(res) showToast('复制成功');
-        else showToast('复制失败',false);
+        if (res) showToast('复制成功');
+        else showToast('复制失败', false);
     }
-    window.copyShuffleCurrent = async function(idx){
+    window.copyShuffleCurrent = async function (idx) {
         const row = showData[idx];
-        if(!row || !row.past.raw.length){
-            showToast('复制失败',false);
+        if (!row || !row.past.raw.length) {
+            showToast('复制失败', false);
             return;
         }
-        const shuffleArr = [...row.past.raw].sort(()=>Math.random()-0.5);
-        const formatted = formatNumberList(shuffleArr,10,5).replaceAll('<br>','\n');
+        const shuffleArr = [...row.past.raw].sort(() => Math.random() - 0.5);
+        const formatted = formatNumberList(shuffleArr, 10, 5).replaceAll('<br>', '\n');
         const res = await copyText(formatted);
-        if(res) showToast('复制成功');
-        else showToast('复制失败',false);
+        if (res) showToast('复制成功');
+        else showToast('复制失败', false);
+    }
+
+    // ========== 新增：1平10特复制、乱序 ==========
+    window.copyTenCurrent = async function (idx) {
+        const row = showData[idx];
+        if (!row || !row.ten.rawList.length) {
+            showToast('复制失败', false);
+            return;
+        }
+        const formatted = formatNumberList(row.ten.rawList, 5, 5).replaceAll('<br>', '\n');
+        const res = await copyText(formatted);
+        if (res) showToast('复制成功');
+        else showToast('复制失败', false);
+    }
+    window.copyTenShuffleCurrent = async function (idx) {
+        const row = showData[idx];
+        if (!row || !row.ten.rawList.length) {
+            showToast('复制失败', false);
+            return;
+        }
+        const shuffleArr = [...row.ten.rawList].sort(() => Math.random() - 0.5);
+        const formatted = formatNumberList(shuffleArr, 5, 5).replaceAll('<br>', '\n');
+        const res = await copyText(formatted);
+        if (res) showToast('复制成功');
+        else showToast('复制失败', false);
     }
 
     function switchPeriod(num) {
@@ -582,7 +621,7 @@ function initPtTouch() {
 
     const probBox = document.getElementById('probBox');
     const probToggleBar = document.getElementById('probToggleBar');
-    probToggleBar.onclick = function(){
+    probToggleBar.onclick = function () {
         probBox.style.display = probBox.style.display === 'flex' ? 'none' : 'flex';
     }
 
