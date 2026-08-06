@@ -496,7 +496,7 @@ function initRtTouch() {
 
     // ====================== 全局状态（收拢分散全局变量） ======================
     const AppState = {
-        rawData: typeof newD !== 'undefined' ? newD : [],
+        // rawData: typeof newD !== 'undefined' ? newD : [],
         showLimit: CONST_CONFIG.DEFAULT_SHOW_LIMIT,
         lastExpandTr: null,
         dataArray: [],
@@ -723,12 +723,12 @@ function initRtTouch() {
      * @param {string} raw 原始文本
      * @returns {Array<{date:string, period:string, pm:Array, tm:Object}>} 解析分组数据
      */
-    function parseData(raw) {
+    function parseData(rawData) {
         const groups = [];
-        if (!raw) return groups;
+        if (!rawData) return groups;
         // 正则预编译，提升循环性能
         const blockReg = /\n\s*\n(?=\d{4}-\d{2}-\d{2}\s*\n\d+期)/;
-        const blocks = raw.trim().split(blockReg);
+        const blocks = rawData.trim().split(blockReg);
 
         for (const block of blocks) {
             const lines = block
@@ -1069,9 +1069,9 @@ function initRtTouch() {
     // ====================== 页面初始化 & 事件绑定 ======================
     function initApp() {
         // 1. 解析原始数据
-        const raw = AppState.rawData;
-        if (raw) {
-            const groups = parseData(raw).reverse();
+        // const raw = AppState.rawData;
+        if (rawData) {
+            const groups = parseData(rawData).reverse();
             AppState.dataArray = groups.map(g => {
                 const tm = g.tm || {};
                 const num = (tm.num || "").toString().padStart(2, '0');
