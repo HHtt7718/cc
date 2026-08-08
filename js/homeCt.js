@@ -308,6 +308,11 @@ function getHomeHtml() {
             .wave-color-section { flex-direction: column; }
             .data-main-container{ gap:0px; }
             .data-section { padding: 0; }
+
+            .data-card{ padding: 5px; margin-bottom: 5px;}
+            .wave-color-section { gap: 5px; margin-bottom: 5px;}
+            .section-title{ margin: 5px 0 5px; padding-bottom: 8px;}
+            .wave-title { margin-bottom: 5px;}
         }
         @media (min-width: 769px) {
             .zodiac-list-view { display: block; }
