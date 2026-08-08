@@ -1,6 +1,4 @@
 // ls-module.js  历史数据页面模块
-// 导出两个方法 getLsHtml() | initLsTouch()，供 index.js 的 PAGE_CONFIG 使用
-
 
 /** 创建ls页面专属style标签 id="ls-page-style"，切换页面会被index.js自动移除 */
 function injectLsStyle() {
