@@ -324,11 +324,14 @@ function switchSource(key) {
         item.classList.remove('open');
     });
 
+    // ============ 【修改】广播数据源切换事件，让各页面自己处理 ============
+    window.dispatchEvent(new CustomEvent('sourceChanged', { detail: { key } }));
+    // ====================================================================
+
     // ============数据源切换完成，重载当前页面 ============
     if(typeof currentPageKey !== 'undefined'){
         changePage(currentPageKey);
     }
-    // console.log("数据源已切换，rawData = ", rawData);
 }
 
 // 打开/关闭面板
