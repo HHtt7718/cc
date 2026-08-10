@@ -289,7 +289,7 @@ const navStyle = `
 `;
 
 //navTpl.js
-// 页面载入自动注入导航样式
+// ===================== 1、页面载入自动注入导航样式 =====================
 (function injectNavStyle() {
     const styleTag = document.createElement('style');
     styleTag.innerHTML = navStyle;
@@ -297,57 +297,76 @@ const navStyle = `
 })();
 
 // ===================== 2、全局数据源变量与切换逻辑 =====================
-
-// 直接赋值字符串，rawData 初始为字符串
-let rawData = newData;
+let rawData = ''; 
 let currentSourceKey = "new";
 
-// 切换数据源函数
-function switchSource(key) {
-    currentSourceKey = key;
-    if (key === "new") rawData = newData;
-    if (key === "old") rawData = oldData;
-    if (key === "fag") rawData = fagData;
+const getSafeData = (key) => {
+    const map = { new: window.xa6Data, old: window.a6Data, fag: window.hk6Data };
+    return map[key] ?? '';
+};
 
+// 初始化默认数据
+rawData = getSafeData(currentSourceKey);
+
+// 【核心修复】：去掉 async，改为同步执行，防止时序错乱
+function switchSource(key) {
+    // 1. 防止重复点击
+    if (key === currentSourceKey) return; 
+
+    // 2. 更新全局状态
+    currentSourceKey = key;
+    rawData = getSafeData(key);
+
+    // 3. 更新 UI 样式
     const textMap = { new: "新", old: "老", fag: "香" };
-    // 同步修改移动端、桌面端两处按钮文字
-    document.querySelectorAll('.source-main-btn').forEach(btn => {
-        btn.innerText = textMap[key];
-    });
-    // 同步选中样式
+    document.querySelectorAll('.source-main-btn').forEach(btn => btn.innerText = textMap[key]);
     document.querySelectorAll('.source-sub-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.key === key) btn.classList.add('active');
     });
-    // 全部收起面板
-    document.querySelectorAll('.source-toggle-wrap,.desktop-source-float').forEach(item => {
-        item.classList.remove('open');
-    });
+    document.querySelectorAll('.source-toggle-wrap,.desktop-source-float').forEach(item => item.classList.remove('open'));
 
-    // ============ 【修改】广播数据源切换事件，让各页面自己处理 ============
+    // 4. 广播事件
     window.dispatchEvent(new CustomEvent('sourceChanged', { detail: { key } }));
-    // ====================================================================
 
-    // ============数据源切换完成，重载当前页面 ============
-    if(typeof currentPageKey !== 'undefined'){
-        changePage(currentPageKey);
+    // 5. 【核心修复】：现在可以正确读取到 window.currentPageKey 并强制重载了！
+    if (typeof window.currentPageKey !== 'undefined') {
+        changePage(window.currentPageKey);
     }
 }
 
-// 打开/关闭面板
-function toggleSourcePanel(el) {
-    el.classList.toggle('open');
-}
+function toggleSourcePanel(el) { el.classList.toggle('open'); }
 
-// 空白处全局关闭面板
 document.addEventListener('click', function (e) {
     const allWrap = document.querySelectorAll('.source-toggle-wrap,.desktop-source-float');
-    allWrap.forEach(wrap => {
-        if (!wrap.contains(e.target)) wrap.classList.remove('open');
-    })
-})
+    allWrap.forEach(wrap => { if (!wrap.contains(e.target)) wrap.classList.remove('open'); });
+});
 
-// ===================== 3、导航HTML模板（移动端侧边导航 + 顶部导航 + 桌面悬浮数据源） =====================
+// ===================== 3、监听预加载完成事件,记录是否已经触发过首屏刷新，防止全部加载完时再次触发 ===================== 
+
+let hasTriggeredFirstRender = false;
+
+window.addEventListener('historyDataReady', () => {
+    console.log('📡 [导航模块] 收到数据就绪信号，正在同步当前数据源...');
+    
+    // 重新获取一次最新数据
+    const freshData = getSafeData(currentSourceKey);
+    if (freshData) {
+        rawData = freshData;
+    }
+
+    // 如果当前已经有页面在显示，则用新数据刷新它
+    if (typeof window.currentPageKey !== 'undefined') {
+        // 【优化】：如果还没触发过首屏渲染，或者当前用户切换到了非默认数据源，才允许刷新
+        // 这样既保证了首屏秒开，又保证了用户在等待期间切换数据源时能正确显示
+        if (!hasTriggeredFirstRender || currentSourceKey !== 'new') {
+            changePage(window.currentPageKey);
+            hasTriggeredFirstRender = true;
+        }
+    }
+});
+
+// ===================== 4、导航HTML模板（保持不变）=====================
 const navTpl = `
 <!-- 手机侧边导航 -->
 <div class="mobile-sidebar-nav">
@@ -358,8 +377,6 @@ const navTpl = `
     <div class="sidebar-button btn-pt" onclick="changePage('pt')">平码回顾</div>
     <div class="sidebar-button btn-zc" onclick="changePage('zc')">生肖表格</div>
     <div class="sidebar-button btn-ls" onclick="changePage('ls')">历史记录</div>
-
-    <!-- 移动端侧边数据源 -->
     <div class="source-toggle-wrap">
         <div class="source-main-btn" onclick="event.stopPropagation();toggleSourcePanel(this.parentElement);">新</div>
         <div class="source-sub-group">
@@ -369,13 +386,8 @@ const navTpl = `
         </div>
     </div>
 </div>
-
 <!-- 顶部导航栏 -->
 <div class="glass-container">
-    <!-- <div class="header">
-        <div class="header-title"></div>
-        <div class="header-subtitle"></div>
-    </div> -->
     <div class="button-group">
         <div class="glass-button btn-home active" onclick="changePage('home')">首页</div>
         <div class="glass-button btn-sx" onclick="changePage('sx')">筛号助手</div>
@@ -386,7 +398,6 @@ const navTpl = `
         <div class="glass-button btn-ls" onclick="changePage('ls')">历史记录</div>
     </div>
 </div>
-
 <!-- 桌面端右上角悬浮数据源切换按钮 -->
 <div class="desktop-source-float">
     <div class="source-main-btn" onclick="event.stopPropagation();toggleSourcePanel(this.parentElement);">新</div>
@@ -398,7 +409,6 @@ const navTpl = `
 </div>
 `;
 
-// DOM加载完成渲染导航
 document.addEventListener('DOMContentLoaded', () => {
     document.body.insertAdjacentHTML('afterbegin', navTpl);
 });
