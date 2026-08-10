@@ -85,15 +85,7 @@
 </head>
 
 <body>
-    <script src="./prD/newD.js"></script>
-    <script src="./prD/oldD.js"></script>
-    <script src="./prD/fagD.js"></script>
-    <script>
-        const newData = newD;
-        const oldData = oldD;
-        const fagData = fagD;
-    </script>
-
+    <script src="./js/fHData.js"></script>
 
     <!-- 导航模板、导航CSS、数据源逻辑统一加载 -->
     <script src="./js/navTpl.js"></script>
@@ -110,85 +102,72 @@
     <script src="./js/rtCt.js"></script>
     <script src="./js/lsCt.js"></script>
 
-
     <script>
-        //index js
-        // 新增：保存当前正在展示的页面key
-        let currentPageKey = 'home';
+        
+        // index.js
+        (function() {
+            window.currentPageKey = 'home'; 
 
-        // 全局内容切换方法
-        function changePage(pageKey) {
-            currentPageKey = pageKey;
-            const wrapper = document.getElementById('contentWrapper');
-            wrapper.innerHTML = '';
+            async function changePage(pageKey) {
+                window.currentPageKey = pageKey; 
+                
+                const wrapper = document.getElementById('contentWrapper');
+                wrapper.innerHTML = '';
 
-            // ==========新增：移除pt页面样式 和原有td/zc放在一起==========
-            const tdStyle = document.getElementById('td-page-style');
-            if(tdStyle) tdStyle.remove();
-            const zcStyle = document.getElementById('zc-page-style');
-            if (zcStyle) zcStyle.remove();
-            const ptStyle = document.getElementById('pt-page-style');
-            if (ptStyle) ptStyle.remove();
-            // 【新增】移除rt页面样式
-            const rtStyle = document.getElementById('rt-page-style');
-            if (rtStyle) rtStyle.remove();
-            // 【新增】移除ls历史记录页面样式
-            const lsStyle = document.getElementById('ls-page-style');
-            if (lsStyle) lsStyle.remove();
+                const styleIds = ['td-page-style', 'zc-page-style', 'pt-page-style', 'rt-page-style', 'ls-page-style'];
+                styleIds.forEach(id => document.getElementById(id)?.remove());
+                document.querySelectorAll('.glass-button, .sidebar-button').forEach(el => el.classList.remove('active'));
 
-            // 先清除全部active
-            document.querySelectorAll('.glass-button, .sidebar-button').forEach(el => {
-                el.classList.remove('active');
-            });
+                const pageConfig = {
+                    home: { html: getHomeHtml, init: initHomeTouch },
+                    sx:   { html: getSxHtml,   init: initSxTouch },
+                    td:   { html: getTdHtml,   init: initTdTouch },
+                    rt:   { html: getRtHtml,   init: initRtTouch },
+                    pt:   { html: getPtHtml,   init: initPtTouch },
+                    zc:   { html: getZcHtml,   init: initZcTouch },
+                    ls:   { html: getLsHtml,   init: initLsTouch }
+                };
 
-            switch (pageKey) {
-                case 'home':
-                    wrapper.innerHTML = getHomeHtml();
-                    initHomeTouch();
-                    break;
-                case 'sx':
-                    wrapper.innerHTML = getSxHtml();
-                    initSxTouch();
-                    break;
-                case 'td':
-                    wrapper.innerHTML = getTdHtml();
-                    initTdTouch();
-                    break;
-                case 'rt':
-                    // 调用封装好的rt页面html
-                    wrapper.innerHTML = getRtHtml();
-                    // 执行rt页面初始化逻辑
-                    initRtTouch();
-                    break;
-                case 'pt':
-                    wrapper.innerHTML = getPtHtml();
-                    initPtTouch();
-                    break;
-                case 'zc':
-                    wrapper.innerHTML = getZcHtml();
-                    initZcTouch();
-                    break;
-                // =========新增ls历史记录页面=========
-                case 'ls':
-                    wrapper.innerHTML = getLsHtml();
-                    initLsTouch();
-                    break;
-                default:
+                const config = pageConfig[pageKey];
+                if (config) {
+                    wrapper.innerHTML = config.html();
+                    
+                    // 只在需要历史数据的页面触发，且内部会做防重处理
+                    if (pageKey !== 'home' && pageKey !== 'sx') {
+                        await HistoryDataModule.init(); 
+                    }
+                    
+                    // 强制从 UI 按钮状态获取当前数据源并更新 rawData
+                    const activeBtn = document.querySelector('.source-sub-btn.active');
+                    const currentKey = activeBtn ? activeBtn.dataset.key : 'new';
+                    
+                    const safeGet = (key) => {
+                        const map = { new: window.xa6Data, old: window.a6Data, fag: window.hk6Data };
+                        return map[key] ?? '';
+                    };
+
+                    if (typeof rawData !== 'undefined') {
+                        rawData = safeGet(currentKey);
+                    }
+
+                    config.init();
+                } else {
                     changePage('home');
-                    return;
+                }
+
+                setTimeout(() => {
+                    document.querySelectorAll(`.btn-${pageKey}`).forEach(el => el.classList.add('active'));
+                }, 0);
             }
 
-            setTimeout(() => {
-                document.querySelectorAll(`.btn-${pageKey}`).forEach(el => {
-                    el.classList.add('active');
-                });
-            }, 0);
-        }
+            document.addEventListener('DOMContentLoaded', () => {
+                // 页面刚打开时主动触发一次预加载
+                HistoryDataModule.init(); 
+                changePage('home');
+            });
 
-        // 默认加载首页
-        document.addEventListener('DOMContentLoaded', () => {
-            changePage('home');
-        });
+            window.changePage = changePage;
+        })();
     </script>
 </body>
 
